@@ -264,6 +264,46 @@ const ELEMENT_NUMBERS = {
   Water: [1, 2, 6]
 };
 
+// —— 十神系统 ——
+const TEN_GODS = {
+  '比肩': 'Same Element (比肩)',
+  '劫财': 'Same Element Rob (劫财)', 
+  '食神': 'Output Element (食神)',
+  '伤官': 'Output Element Hurt (伤官)',
+  '偏财': 'Wealth Element (偏财)',
+  '正财': 'Wealth Element Direct (正财)',
+  '七杀': 'Kill Element (七杀)',
+  '正官': 'Official Element (正官)',
+  '偏印': 'Print Element (偏印)',
+  '正印': 'Print Element Direct (正印)'
+};
+
+function getTenGods(dayStem, otherStem) {
+  const dayElement = ELEMENT_MAP[dayStem];
+  const otherElement = ELEMENT_MAP[otherStem];
+  
+  if (dayElement === otherElement) {
+    return '比肩';
+  }
+  
+  const relations = ELEMENT_RELATIONS[dayElement];
+  
+  if (otherElement === relations.generated_by) {
+    return '正印';
+  }
+  if (otherElement === relations.generates) {
+    return '食神';
+  }
+  if (otherElement === relations.restricted_by) {
+    return '正官';
+  }
+  if (otherElement === relations.restricts) {
+    return '正财';
+  }
+  
+  return '偏财';
+}
+
 function analyzeElements(pillars, dayP) {
   const arr = pillars.flatMap(p => [p[0], p[1]]).map(c => ELEMENT_MAP[c]);
   const cnt = { Wood: 0, Fire: 0, Earth: 0, Metal: 0, Water: 0 };
@@ -518,15 +558,24 @@ window.addEventListener('DOMContentLoaded', () => {
   document.getElementById('analyze-button').addEventListener('click', () => {
     const bd = document.getElementById('birthdate').value;
     const bt = document.getElementById('birthtime').value;
-    const res = document.getElementById('analysis-result'); res.innerHTML = '';
+    const res = document.getElementById('analysis-result'); 
+    res.innerHTML = '';
 
-    if (!bd || !bt) { res.textContent = 'Please enter birth date and time.'; return; }
-    const dt = new Date(`${bd}T${bt}`); if (isNaN(dt)) { res.textContent = 'Invalid date/time.'; return; }
+    if (!bd || !bt) { 
+      res.innerHTML = '<div class="error">Please enter birth date and time.</div>'; 
+      return; 
+    }
+    
+    const dt = new Date(`${bd}T${bt}`); 
+    if (isNaN(dt)) { 
+      res.innerHTML = '<div class="error">Invalid date/time.</div>'; 
+      return; 
+    }
 
     const totalDays = calculateTotalDays(dt);
     const { ganZhi, star } = calculateGanZhiAndStars(totalDays);
     const bz = calculateBaZi(dt);
-    const { favorable, unfavorable } = analyzeElements([bz.year, bz.month, bz.day, bz.hour], bz.day);
+    const analysis = analyzeElements([bz.year, bz.month, bz.day, bz.hour], bz.day);
 
     const formatE = arr => arr.map(e => `<span class="element-${e.toLowerCase()}">${CH_ELEMENT[e]}</span>`).join(', ');
     const dm = `Day Master: ${bz.day} (` + `<span class="element-${ELEMENT_MAP[bz.day[0]].toLowerCase()}">${CH_ELEMENT[ELEMENT_MAP[bz.day[0]]]}</span>)`;
@@ -534,27 +583,37 @@ window.addEventListener('DOMContentLoaded', () => {
       const el = ELEMENT_MAP[ch];
       return el ? `<span class="element-${el.toLowerCase()}">${ch}</span>` : ch;
     }).join('');
-    const table = `<h3>BaZi Chart</h3><table>` +
-      `<tr><th>Pillar</th><th>GanZhi</th><th>Element</th></tr>` +
-      `<tr><td>Year</td><td>${colorize(bz.year)}</td><td>${formatE([ELEMENT_MAP[bz.year[0]], ELEMENT_MAP[bz.year[1]]])}</td></tr>` +
-      `<tr><td>Month</td><td>${colorize(bz.month)}</td><td>${formatE([ELEMENT_MAP[bz.month[0]], ELEMENT_MAP[bz.month[1]]])}</td></tr>` +
-      `<tr><td>Day</td><td>${colorize(bz.day)}</td><td>${formatE([ELEMENT_MAP[bz.day[0]], ELEMENT_MAP[bz.day[1]]])}</td></tr>` +
-      `<tr><td>Hour</td><td>${colorize(bz.hour)}</td><td>${formatE([ELEMENT_MAP[bz.hour[0]], ELEMENT_MAP[bz.hour[1]]])}</td></tr>` +
+
+    // Calculate 10 Gods for each pillar
+    const dayStem = bz.day[0];
+    const tenGods = {
+      year: getTenGods(dayStem, bz.year[0]),
+      month: getTenGods(dayStem, bz.month[0]),
+      day: '日主 (Day Master)',
+      hour: getTenGods(dayStem, bz.hour[0])
+    };
+
+    const table = `<h3>BaZi Chart with 10 Gods (十神)</h3><table>` +
+      `<tr><th>Pillar</th><th>GanZhi</th><th>Element</th><th>10 Gods</th></tr>` +
+      `<tr><td>Year</td><td>${colorize(bz.year)}</td><td>${formatE([ELEMENT_MAP[bz.year[0]], ELEMENT_MAP[bz.year[1]]])}</td><td>${tenGods.year}</td></tr>` +
+      `<tr><td>Month</td><td>${colorize(bz.month)}</td><td>${formatE([ELEMENT_MAP[bz.month[0]], ELEMENT_MAP[bz.month[1]]])}</td><td>${tenGods.month}</td></tr>` +
+      `<tr><td>Day</td><td>${colorize(bz.day)}</td><td>${formatE([ELEMENT_MAP[bz.day[0]], ELEMENT_MAP[bz.day[1]]])}</td><td>${tenGods.day}</td></tr>` +
+      `<tr><td>Hour</td><td>${colorize(bz.hour)}</td><td>${formatE([ELEMENT_MAP[bz.hour[0]], ELEMENT_MAP[bz.hour[1]]])}</td><td>${tenGods.hour}</td></tr>` +
       `</table>`;
 
     // Get recommended products
-    const recommendedProducts = getRecommendedProducts(favorable, favorable);
-
+    const recommendedProducts = getRecommendedProducts(analysis.favorable, analysis.luckyColors);
+    
     res.innerHTML = `
       <div class="analysis-summary">
         <h3>Your BaZi Analysis</h3>
-      <p><strong>GanZhi:</strong> ${ganZhi}</p>
-      <p><strong>Star:</strong> ${star}</p>
-      <p><strong>Lucky Elements:</strong> ${formatE(favorable)}</p>
-      <p><strong>Unlucky Elements:</strong> ${formatE(unfavorable)}</p>
-        <p><strong>Lucky Colors:</strong> ${favorable.luckyColors.join(', ')}</p>
-        <p><strong>Lucky Numbers:</strong> ${favorable.luckyNumbers.join(', ')}</p>
-      <p><strong>${dm}</strong></p>
+        <p><strong>GanZhi:</strong> ${ganZhi}</p>
+        <p><strong>Star:</strong> ${star}</p>
+        <p><strong>Lucky Elements:</strong> ${formatE(analysis.favorable)}</p>
+        <p><strong>Unlucky Elements:</strong> ${formatE(analysis.unfavorable)}</p>
+        <p><strong>Lucky Colors:</strong> ${analysis.luckyColors.join(', ')}</p>
+        <p><strong>Lucky Numbers:</strong> ${analysis.luckyNumbers.join(', ')}</p>
+        <p><strong>${dm}</strong></p>
       </div>
       ${table}
       <div class="recommended-products">
