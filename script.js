@@ -17,44 +17,175 @@ const CH_ELEMENT = {
   Water: '水 (Water)'
 };
 
-// —— 材质示例数据（完整列表） ——
-const materials = [
-  { name: 'Green Phantom Quartz', meaning: 'Enhances career and wealth', element: 'Wood', image: 'images/GreenPhantomQuartz.png'},
-  { name: 'Xinjiang Old Yellow Jade', meaning: 'Brings stability and protection', element: 'Earth', image: 'images/XinjiangOldYellowJade.png' },
-  { name: 'Peach Wood', meaning: 'Wards off evil spirits', element: 'Wood', image: 'images/PeachWood.png' },
-  { name: 'Hainan Agarwood', meaning: 'Calms the mind and body', element: 'Wood', image: 'images/HainanAgarwood.png' },
-  { name: 'South African Blue Lace Agate', meaning: 'Promotes communication and clarity', element: 'Water', image: 'images/SouthAfricaBlueLaceAgate.png' },
-  { name: 'Alashan Agate', meaning: 'Enhances vitality and courage', element: 'Fire', image: 'images/AlashanAgate.png' },
-  { name: 'Xinjiang Hetian Jade', meaning: 'Symbolizes purity and moral integrity', element: 'Earth', image: 'images/XinjiangHetianJade.png' },
-  { name: 'Green Sandalwood', meaning: 'Brings tranquility and spiritual growth', element: 'Wood', image: 'images/GreenSandalwood.png' },
-  { name: 'Obsidian', meaning: 'Protects against negativity', element: 'Water', image: 'images/Obsidian.png' },
-  { name: 'Shoushan Imperial Stone', meaning: 'Attracts wealth and prosperity', element: 'Earth', image: 'images/ShoushanImperialStone.png' },
-  { name: 'White Cat\'s Eye Stone', meaning: 'Enhances intuition and insight', element: 'Metal', image: '' },
-  { name: 'Amber', meaning: 'Promotes healing and energy', element: 'Earth', image: '' },
-  { name: 'Red Agate', meaning: 'Boosts confidence and courage', element: 'Fire', image: '' },
-  { name: 'Ice Blue Jadeite', meaning: 'Brings peace and serenity', element: 'Water', image: '' },
-  { name: 'Wealth-Attracting Yellow Agate', meaning: 'Attracts wealth and success', element: 'Earth', image: '' },
-  { name: 'Purple Sandalwood', meaning: 'Enhances spiritual awareness', element: 'Wood', image: '' },
-  { name: 'Yellow Tiger Eye Stone', meaning: 'Provides protection and grounding', element: 'Earth', image: '' },
-  { name: 'Green Jadeite', meaning: 'Symbolizes harmony and balance', element: 'Wood', image: '' },
-  { name: 'Rose Quartz', meaning: 'Encourages love and compassion', element: 'Fire', image: '' },
-  { name: 'Ice Garnet', meaning: 'Stimulates passion and energy', element: 'Fire', image: '' },
-  { name: 'Brazilian Yellow Citrine', meaning: 'Attracts abundance and personal power', element: 'Earth', image: '' },
-  { name: 'Cinnabar', meaning: 'Protects against evil and enhances vitality', element: 'Fire', image: '' },
-  { name: 'Turquoise', meaning: 'Promotes healing and protection', element: 'Water', image: '' },
-  { name: 'White Bodhi Seed', meaning: 'Encourages spiritual growth', element: 'Wood', image: '' },
-  { name: 'Amethyst', meaning: 'Enhances intuition and spiritual awareness', element: 'Fire', image: '' },
-  { name: 'Lepidolite', meaning: 'Reduces stress and promotes emotional balance', element: 'Water', image: '' },
-  { name: 'Lapis Lazuli', meaning: 'Encourages wisdom and truth', element: 'Water', image: '' },
-  { name: 'Goldstone', meaning: 'Boosts ambition and confidence', element: 'Fire', image: '' },
-  { name: 'Peach Persian Jade', meaning: 'Promotes love and harmony', element: 'Earth', image: '' },
-  { name: 'Hetian Purple Jade', meaning: 'Enhances spiritual insight', element: 'Water', image: '' },
-  { name: 'Strawberry Quartz', meaning: 'Encourages love and emotional healing', element: 'Fire', image: '' },
-  { name: 'Pigeon Blood Red', meaning: 'Symbolizes passion and vitality', element: 'Fire', image: '' },
-  { name: 'Green Jade Stone', meaning: 'Promotes balance and harmony', element: 'Wood', image: '' },
-  { name: 'Burmese Jadeite', meaning: 'Brings prosperity and longevity', element: 'Earth', image: '' },
-  { name: 'Sheep Fat White Jade', meaning: 'Symbolizes purity and nobility', element: 'Metal', image: '' }
+// —— 产品数据库 ——
+const products = [
+  // Wood Element Products
+  { 
+    id: 'green-phantom-quartz', 
+    name: 'Green Phantom Quartz', 
+    chineseName: '绿幽灵水晶',
+    meaning: 'Enhances career and wealth', 
+    element: 'Wood', 
+    colors: ['Green', 'Teal', 'Emerald'],
+    image: 'images/GreenPhantomQuartz.png',
+    price: 25.00,
+    description: 'A powerful crystal that enhances career success and attracts wealth through its connection to the Wood element.'
+  },
+  { 
+    id: 'peach-wood', 
+    name: 'Peach Wood', 
+    chineseName: '桃木',
+    meaning: 'Wards off evil spirits', 
+    element: 'Wood', 
+    colors: ['Brown', 'Beige'],
+    image: 'images/PeachWood.png',
+    price: 15.00,
+    description: 'Traditional Chinese wood known for its protective properties against negative energies.'
+  },
+  { 
+    id: 'hainan-agarwood', 
+    name: 'Hainan Agarwood', 
+    chineseName: '海南沉香',
+    meaning: 'Calms the mind and body', 
+    element: 'Wood', 
+    colors: ['Brown', 'Dark Brown'],
+    image: 'images/HainanAgarwood.png',
+    price: 45.00,
+    description: 'Premium agarwood from Hainan, known for its calming and meditative properties.'
+  },
+  { 
+    id: 'green-sandalwood', 
+    name: 'Green Sandalwood', 
+    chineseName: '绿檀木',
+    meaning: 'Brings tranquility and spiritual growth', 
+    element: 'Wood', 
+    colors: ['Green', 'Dark Green'],
+    image: 'images/GreenSandalwood.png',
+    price: 20.00,
+    description: 'Sacred wood that promotes spiritual growth and inner peace.'
+  },
+  
+  // Fire Element Products
+  { 
+    id: 'alashan-agate', 
+    name: 'Alashan Agate', 
+    chineseName: '阿拉善玛瑙',
+    meaning: 'Enhances vitality and courage', 
+    element: 'Fire', 
+    colors: ['Red', 'Orange', 'Coral'],
+    image: 'images/AlashanAgate.png',
+    price: 30.00,
+    description: 'Vibrant agate that boosts energy, courage, and personal power.'
+  },
+  { 
+    id: 'red-agate', 
+    name: 'Red Agate', 
+    chineseName: '红玛瑙',
+    meaning: 'Boosts confidence and courage', 
+    element: 'Fire', 
+    colors: ['Red', 'Pink'],
+    image: '',
+    price: 18.00,
+    description: 'Stimulates confidence and courage through its fiery energy.'
+  },
+  { 
+    id: 'rose-quartz', 
+    name: 'Rose Quartz', 
+    chineseName: '粉水晶',
+    meaning: 'Encourages love and compassion', 
+    element: 'Fire', 
+    colors: ['Pink', 'Rose'],
+    image: '',
+    price: 22.00,
+    description: 'The stone of love that opens the heart chakra and attracts loving relationships.'
+  },
+  
+  // Earth Element Products
+  { 
+    id: 'xinjiang-old-yellow-jade', 
+    name: 'Xinjiang Old Yellow Jade', 
+    chineseName: '新疆老黄玉',
+    meaning: 'Brings stability and protection', 
+    element: 'Earth', 
+    colors: ['Yellow', 'Gold', 'Amber'],
+    image: 'images/XinjiangOldYellowJade.png',
+    price: 65.00,
+    description: 'Ancient jade that provides grounding energy and protection.'
+  },
+  { 
+    id: 'xinjiang-hetian-jade', 
+    name: 'Xinjiang Hetian Jade', 
+    chineseName: '新疆和田玉',
+    meaning: 'Symbolizes purity and moral integrity', 
+    element: 'Earth', 
+    colors: ['White', 'Cream', 'Beige'],
+    image: 'images/XinjiangHetianJade.png',
+    price: 85.00,
+    description: 'Premium jade known as the "king of jades" for its purity and spiritual properties.'
+  },
+  { 
+    id: 'shoushan-imperial-stone', 
+    name: 'Shoushan Imperial Stone', 
+    chineseName: '寿山石帝王石',
+    meaning: 'Attracts wealth and prosperity', 
+    element: 'Earth', 
+    colors: ['Yellow', 'Gold', 'Brown'],
+    image: 'images/ShoushanImperialStone.png',
+    price: 55.00,
+    description: 'Imperial stone that attracts wealth and prosperity through its royal energy.'
+  },
+  
+  // Metal Element Products
+  { 
+    id: 'white-cats-eye', 
+    name: 'White Cat\'s Eye Stone', 
+    chineseName: '白猫眼石',
+    meaning: 'Enhances intuition and insight', 
+    element: 'Metal', 
+    colors: ['White', 'Silver', 'Gray'],
+    image: '',
+    price: 35.00,
+    description: 'Mystical stone that enhances intuition and provides spiritual insight.'
+  },
+  { 
+    id: 'sheep-fat-white-jade', 
+    name: 'Sheep Fat White Jade', 
+    chineseName: '羊脂白玉',
+    meaning: 'Symbolizes purity and nobility', 
+    element: 'Metal', 
+    colors: ['White', 'Cream'],
+    image: '',
+    price: 95.00,
+    description: 'The purest form of jade, symbolizing nobility and spiritual purity.'
+  },
+  
+  // Water Element Products
+  { 
+    id: 'south-africa-blue-lace-agate', 
+    name: 'South African Blue Lace Agate', 
+    chineseName: '南非蓝纹玉',
+    meaning: 'Promotes communication and clarity', 
+    element: 'Water', 
+    colors: ['Blue', 'Light Blue', 'Teal'],
+    image: 'images/SouthAfricaBlueLaceAgate.png',
+    price: 28.00,
+    description: 'Beautiful agate that enhances communication and mental clarity.'
+  },
+  { 
+    id: 'obsidian', 
+    name: 'Obsidian', 
+    chineseName: '黑曜石',
+    meaning: 'Protects against negativity', 
+    element: 'Water', 
+    colors: ['Black', 'Dark Blue'],
+    image: 'images/Obsidian.png',
+    price: 15.00,
+    description: 'Powerful protective stone that shields against negative energies.'
+  }
 ];
+
+// Legacy materials array for backward compatibility
+const materials = products;
 
 // —— 累计天数计算 ——
 // 基准日期：1900-01-01
@@ -116,6 +247,23 @@ const ELEMENT_RELATIONS = {
   Water: { generated_by: 'Metal', generates: 'Wood', restricted_by: 'Earth' }
 };
 
+// —— 五行对应的颜色和数字 ——
+const ELEMENT_COLORS = {
+  Wood: ['Green', 'Teal', 'Light Blue', 'Emerald'],
+  Fire: ['Red', 'Orange', 'Pink', 'Purple', 'Coral'],
+  Earth: ['Yellow', 'Brown', 'Beige', 'Gold', 'Amber'],
+  Metal: ['White', 'Silver', 'Gray', 'Platinum'],
+  Water: ['Black', 'Dark Blue', 'Navy', 'Midnight Blue']
+};
+
+const ELEMENT_NUMBERS = {
+  Wood: [3, 4, 8],
+  Fire: [2, 7, 9],
+  Earth: [5, 6, 0],
+  Metal: [1, 6, 7],
+  Water: [1, 2, 6]
+};
+
 function analyzeElements(pillars, dayP) {
   const arr = pillars.flatMap(p => [p[0], p[1]]).map(c => ELEMENT_MAP[c]);
   const cnt = { Wood: 0, Fire: 0, Earth: 0, Metal: 0, Water: 0 };
@@ -127,17 +275,242 @@ function analyzeElements(pillars, dayP) {
   const weak = entries.find(([, c]) => c === min)[0];
   const fav = [weak]; const gen = ELEMENT_RELATIONS[weak].generated_by; if (gen !== weak) fav.push(gen);
   const unf = [strong]; const rst = ELEMENT_RELATIONS[strong].restricted_by; if (rst !== strong) unf.push(rst);
-  return { favorable: fav, unfavorable: unf };
+  
+  // Get lucky colors and numbers for favorable elements
+  const luckyColors = [...new Set(fav.flatMap(el => ELEMENT_COLORS[el]))];
+  const luckyNumbers = [...new Set(fav.flatMap(el => ELEMENT_NUMBERS[el]))];
+  const unluckyColors = [...new Set(unf.flatMap(el => ELEMENT_COLORS[el]))];
+  const unluckyNumbers = [...new Set(unf.flatMap(el => ELEMENT_NUMBERS[el]))];
+  
+  return { 
+    favorable: fav, 
+    unfavorable: unf,
+    luckyColors,
+    luckyNumbers,
+    unluckyColors,
+    unluckyNumbers,
+    elementCounts: cnt
+  };
+}
+
+// —— 产品推荐系统 ——
+function getRecommendedProducts(favorableElements, luckyColors) {
+  return products.filter(product => 
+    favorableElements.includes(product.element) ||
+    product.colors.some(color => luckyColors.includes(color))
+  ).slice(0, 6); // Show top 6 recommendations
+}
+
+function showProductDetails(productId) {
+  const product = products.find(p => p.id === productId);
+  if (!product) return;
+  
+  // Create product detail modal
+  const modal = document.createElement('div');
+  modal.className = 'product-modal';
+  modal.innerHTML = `
+    <div class="modal-content">
+      <span class="close" onclick="closeModal()">&times;</span>
+      <div class="product-detail">
+        <div class="product-image">
+          <img src="${product.image || 'https://via.placeholder.com/300x300?text=' + encodeURIComponent(product.name)}" alt="${product.name}">
+        </div>
+        <div class="product-details">
+          <h2>${product.name}</h2>
+          <p class="chinese-name">${product.chineseName}</p>
+          <p class="price">$${product.price}</p>
+          <p class="element">${product.element} Element</p>
+          <p class="description">${product.description}</p>
+          <p class="meaning"><strong>Meaning:</strong> ${product.meaning}</p>
+          <p class="colors"><strong>Available Colors:</strong> ${product.colors.join(', ')}</p>
+          
+          <div class="quantity-selector">
+            <label for="quantity">Quantity:</label>
+            <input type="number" id="quantity" min="1" max="10" value="1">
+          </div>
+          
+          <div class="add-to-cart">
+            <button onclick="addToCart('${product.id}')">Add to Cart</button>
+            <button onclick="buyNow('${product.id}')">Buy Now</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+  
+  document.body.appendChild(modal);
+  document.body.style.overflow = 'hidden';
+}
+
+function showAllProducts() {
+  // Hide birthdate section and show all products
+  document.getElementById('birthdate-input').style.display = 'none';
+  document.getElementById('material-list').style.display = 'block';
+  
+  // Update the materials container with all products
+  const container = document.getElementById('materials-container');
+  container.innerHTML = '';
+  
+  products.forEach(product => {
+    const card = document.createElement('div');
+    card.className = 'material-card product-card';
+    card.onclick = () => showProductDetails(product.id);
+    
+    const src = product.image || `https://via.placeholder.com/250x150?text=${encodeURIComponent(product.name)}`;
+    card.innerHTML = `
+      <img src="${src}" alt="${product.name}">
+      <div class="material-card-content">
+        <h3>${product.name}</h3>
+        <p class="chinese-name">${product.chineseName}</p>
+        <p><strong>Price:</strong> $${product.price}</p>
+        <p><strong>Element:</strong> ${product.element}</p>
+        <p><strong>Colors:</strong> ${product.colors.join(', ')}</p>
+        <p><strong>Meaning:</strong> ${product.meaning}</p>
+      </div>
+    `;
+    container.appendChild(card);
+  });
+}
+
+function closeModal() {
+  const modal = document.querySelector('.product-modal');
+  if (modal) {
+    modal.remove();
+    document.body.style.overflow = 'auto';
+  }
+}
+
+function addToCart(productId) {
+  const product = products.find(p => p.id === productId);
+  const quantity = document.getElementById('quantity').value;
+  
+  // Simple cart implementation (you can integrate with Shopify here)
+  let cart = JSON.parse(localStorage.getItem('cart') || '[]');
+  const existingItem = cart.find(item => item.id === productId);
+  
+  if (existingItem) {
+    existingItem.quantity += parseInt(quantity);
+  } else {
+    cart.push({
+      id: productId,
+      name: product.name,
+      price: product.price,
+      quantity: parseInt(quantity),
+      image: product.image
+    });
+  }
+  
+  localStorage.setItem('cart', JSON.stringify(cart));
+  updateCartCount();
+  alert(`${product.name} added to cart!`);
+  closeModal();
+}
+
+function buyNow(productId) {
+  // Redirect to checkout or integrate with Shopify
+  alert('Redirecting to checkout...');
+  // window.location.href = 'https://your-shopify-store.com/cart';
+}
+
+// —— 导航功能 ——
+function showAnalysisPage() {
+  document.getElementById('birthdate-input').style.display = 'block';
+  document.getElementById('material-list').style.display = 'none';
+  document.getElementById('cart-section').style.display = 'none';
+  updateActiveNav('nav-analysis');
+}
+
+function showProductsPage() {
+  document.getElementById('birthdate-input').style.display = 'none';
+  document.getElementById('material-list').style.display = 'block';
+  document.getElementById('cart-section').style.display = 'none';
+  updateActiveNav('nav-products');
+  showAllProducts();
+}
+
+function showCart() {
+  document.getElementById('birthdate-input').style.display = 'none';
+  document.getElementById('material-list').style.display = 'none';
+  document.getElementById('cart-section').style.display = 'block';
+  updateActiveNav('nav-cart');
+  displayCart();
+}
+
+function updateActiveNav(activeId) {
+  document.querySelectorAll('nav button').forEach(btn => btn.classList.remove('active'));
+  document.getElementById(activeId).classList.add('active');
+}
+
+function displayCart() {
+  const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+  const cartContent = document.getElementById('cart-content');
+  
+  if (cart.length === 0) {
+    cartContent.innerHTML = '<p>Your cart is empty.</p>';
+    return;
+  }
+  
+  let total = 0;
+  const cartHTML = cart.map(item => {
+    const itemTotal = item.price * item.quantity;
+    total += itemTotal;
+    return `
+      <div class="cart-item">
+        <img src="${item.image || 'https://via.placeholder.com/50x50'}" alt="${item.name}">
+        <div class="cart-item-info">
+          <h4>${item.name}</h4>
+          <p>$${item.price} × ${item.quantity} = $${itemTotal.toFixed(2)}</p>
+        </div>
+        <button onclick="removeFromCart('${item.id}')">Remove</button>
+      </div>
+    `;
+  }).join('');
+  
+  cartContent.innerHTML = `
+    <div class="cart-items">${cartHTML}</div>
+    <div class="cart-total">
+      <h3>Total: $${total.toFixed(2)}</h3>
+      <button onclick="checkout()">Proceed to Checkout</button>
+    </div>
+  `;
+}
+
+function removeFromCart(productId) {
+  let cart = JSON.parse(localStorage.getItem('cart') || '[]');
+  cart = cart.filter(item => item.id !== productId);
+  localStorage.setItem('cart', JSON.stringify(cart));
+  updateCartCount();
+  displayCart();
+}
+
+function checkout() {
+  alert('Redirecting to checkout...');
+  // Integrate with Shopify or payment processor
+}
+
+function updateCartCount() {
+  const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+  const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+  document.getElementById('cart-count').textContent = totalItems;
 }
 
 // —— 渲染与交互逻辑 ——
 window.addEventListener('DOMContentLoaded', () => {
+  // Initialize cart count
+  updateCartCount();
+  
+  // Set default active navigation
+  updateActiveNav('nav-analysis');
+  
   const mCont = document.getElementById('materials-container');
   materials.forEach(mat => {
-    const card = document.createElement('div'); card.className = 'material-card';
+    const card = document.createElement('div'); 
+    card.className = 'material-card';
+    card.onclick = () => showProductDetails(mat.id);
     const src = mat.image || `https://via.placeholder.com/250x150?text=${encodeURIComponent(mat.name)}`;
     card.innerHTML = `<img src="${src}" alt="${mat.name}"><div class="material-card-content">` +
-      `<h3>${mat.name}</h3><p><strong>Meaning:</strong> ${mat.meaning}</p>` +
+      `<h3>${mat.name}</h3><p><strong>Price:</strong> $${mat.price}</p>` +
+      `<p><strong>Meaning:</strong> ${mat.meaning}</p>` +
       `<p><strong>Element:</strong> ${mat.element}</p></div>`;
     mCont.appendChild(card);
   });
@@ -169,12 +542,37 @@ window.addEventListener('DOMContentLoaded', () => {
       `<tr><td>Hour</td><td>${colorize(bz.hour)}</td><td>${formatE([ELEMENT_MAP[bz.hour[0]], ELEMENT_MAP[bz.hour[1]]])}</td></tr>` +
       `</table>`;
 
+    // Get recommended products
+    const recommendedProducts = getRecommendedProducts(favorable, favorable);
+
     res.innerHTML = `
+      <div class="analysis-summary">
+        <h3>Your BaZi Analysis</h3>
       <p><strong>GanZhi:</strong> ${ganZhi}</p>
       <p><strong>Star:</strong> ${star}</p>
       <p><strong>Lucky Elements:</strong> ${formatE(favorable)}</p>
       <p><strong>Unlucky Elements:</strong> ${formatE(unfavorable)}</p>
+        <p><strong>Lucky Colors:</strong> ${favorable.luckyColors.join(', ')}</p>
+        <p><strong>Lucky Numbers:</strong> ${favorable.luckyNumbers.join(', ')}</p>
       <p><strong>${dm}</strong></p>
-      ${table}`;
+      </div>
+      ${table}
+      <div class="recommended-products">
+        <h3>Recommended Bracelet Materials</h3>
+        <div class="product-grid">
+          ${recommendedProducts.map(product => `
+            <div class="product-card" onclick="showProductDetails('${product.id}')">
+              <img src="${product.image || 'https://via.placeholder.com/200x150?text=' + encodeURIComponent(product.name)}" alt="${product.name}">
+              <div class="product-info">
+                <h4>${product.name}</h4>
+                <p class="chinese-name">${product.chineseName}</p>
+                <p class="price">$${product.price}</p>
+                <p class="element">${product.element} Element</p>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+        <button id="view-all-products" onclick="showAllProducts()">View All Products</button>
+      </div>`;
   });
 });

@@ -7,7 +7,14 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <h1>Lucky Charm Bracelet Selector</h1>
+  <header>
+    <h1>Lucky Charm Bracelet Selector</h1>
+    <nav>
+      <button id="nav-analysis" onclick="showAnalysisPage()">BaZi Analysis</button>
+      <button id="nav-products" onclick="showProductsPage()">All Products</button>
+      <button id="nav-cart" onclick="showCart()">Cart (<span id="cart-count">0</span>)</button>
+    </nav>
+  </header>
 
   <!-- 1️⃣ First: Birth Date and Time Section -->
   <section id="birthdate-input">
@@ -31,6 +38,14 @@
     <h2>Materials and their meanings</h2>
     <div id="materials-container">
       <!-- Material cards will be generated here -->
+    </div>
+  </section>
+
+  <!-- 3️⃣ Cart Section -->
+  <section id="cart-section" style="display: none;">
+    <h2>Shopping Cart</h2>
+    <div id="cart-content">
+      <!-- Cart items will be displayed here -->
     </div>
   </section>
 
