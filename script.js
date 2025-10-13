@@ -610,6 +610,13 @@ async function sendMessage() {
 }
 
 async function getAIResponse(userMessage) {
+  // Check if AI is enabled
+  const aiEnabled = document.getElementById('ai-enabled').checked;
+  
+  if (!aiEnabled) {
+    return "AI Assistant is currently disabled. Please enable it using the toggle switch above to get AI-powered responses.";
+  }
+
   // Create context about the website and products
   const context = `
 You are a BaZi AI Assistant for a Chinese astrology bracelet customizer website. 

@@ -21,7 +21,14 @@
   <div id="chatbot-container" class="chatbot-container">
     <div id="chatbot-header" class="chatbot-header">
       <h3>🤖 BaZi AI Assistant</h3>
-      <button id="chatbot-close" onclick="toggleChat()">×</button>
+      <div class="chatbot-controls">
+        <label class="ai-toggle">
+          <input type="checkbox" id="ai-enabled" checked>
+          <span class="toggle-slider"></span>
+          <span class="toggle-label">AI Enabled</span>
+        </label>
+        <button id="chatbot-close" onclick="toggleChat()">×</button>
+      </div>
     </div>
     <div id="chatbot-messages" class="chatbot-messages"></div>
     <div id="chatbot-input" class="chatbot-input">
