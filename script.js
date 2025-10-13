@@ -84,7 +84,7 @@ const products = [
     meaning: 'Boosts confidence and courage', 
     element: 'Fire', 
     colors: ['Red', 'Pink'],
-    image: '',
+    image: 'images/RedAgate.png',
     price: 18.00,
     description: 'Stimulates confidence and courage through its fiery energy.'
   },
@@ -95,7 +95,7 @@ const products = [
     meaning: 'Encourages love and compassion', 
     element: 'Fire', 
     colors: ['Pink', 'Rose'],
-    image: '',
+    image: 'images/PinkCristal.png',
     price: 22.00,
     description: 'The stone of love that opens the heart chakra and attracts loving relationships.'
   },
@@ -143,7 +143,7 @@ const products = [
     meaning: 'Enhances intuition and insight', 
     element: 'Metal', 
     colors: ['White', 'Silver', 'Gray'],
-    image: '',
+    image: 'images/WhiteCatEyeStone.png',
     price: 35.00,
     description: 'Mystical stone that enhances intuition and provides spiritual insight.'
   },
@@ -154,7 +154,7 @@ const products = [
     meaning: 'Symbolizes purity and nobility', 
     element: 'Metal', 
     colors: ['White', 'Cream'],
-    image: '',
+    image: 'images/SheepFatWhiteJade.png',
     price: 95.00,
     description: 'The purest form of jade, symbolizing nobility and spiritual purity.'
   },
