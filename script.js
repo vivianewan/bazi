@@ -633,9 +633,51 @@ Be helpful, knowledgeable about Chinese astrology, and encourage customers to tr
 Keep responses concise but informative.
   `;
 
-  // For demo purposes, we'll use a simple response system
-  // In production, you'd integrate with OpenAI API
-  return await generateLocalResponse(userMessage, context);
+  // Check if OpenAI API is available
+  if (typeof API_CONFIG !== 'undefined' && API_CONFIG.OPENAI_API_KEY && API_CONFIG.OPENAI_API_KEY !== 'your-openai-api-key-here') {
+    return await generateOpenAIResponse(userMessage, context);
+  } else {
+    // Fallback to local responses
+    return await generateLocalResponse(userMessage, context);
+  }
+}
+
+async function generateOpenAIResponse(message, context) {
+  try {
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${API_CONFIG.OPENAI_API_KEY}`
+      },
+      body: JSON.stringify({
+        model: API_CONFIG.OPENAI_MODEL || 'gpt-4o-mini',
+        messages: [
+          {
+            role: 'system',
+            content: context
+          },
+          {
+            role: 'user',
+            content: message
+          }
+        ],
+        max_tokens: API_CONFIG.OPENAI_MAX_TOKENS || 500,
+        temperature: 0.7
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error(`OpenAI API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data.choices[0].message.content;
+  } catch (error) {
+    console.error('OpenAI API Error:', error);
+    // Fallback to local response
+    return await generateLocalResponse(message, context);
+  }
 }
 
 async function generateLocalResponse(message, context) {
