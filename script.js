@@ -610,11 +610,12 @@ async function sendMessage() {
 }
 
 async function getAIResponse(userMessage) {
-  // Check if AI is enabled
+  // Check if AI is enabled (admin control)
   const aiEnabled = document.getElementById('ai-enabled').checked;
   
   if (!aiEnabled) {
-    return "AI Assistant is currently disabled. Please enable it using the toggle switch above to get AI-powered responses.";
+    // Use smart fallback responses instead of generic message
+    return await generateLocalResponse(userMessage, '');
   }
 
   // Create context about the website and products
@@ -714,6 +715,40 @@ async function generateLocalResponse(message, context) {
   // Default response
   return "That's a great question! I'm here to help you understand BaZi analysis, stone meanings, and find the perfect bracelet for you. Try our BaZi analysis to get personalized recommendations, or ask me about specific stones or elements. What would you like to know more about?";
 }
+
+// —— Admin Panel Functions ——
+function showAdminPanel() {
+  const modal = document.getElementById('admin-modal');
+  modal.style.display = 'flex';
+  updateStatusDisplay();
+}
+
+function closeAdminPanel() {
+  const modal = document.getElementById('admin-modal');
+  modal.style.display = 'none';
+}
+
+function updateStatusDisplay() {
+  const aiEnabled = document.getElementById('ai-enabled').checked;
+  const statusDot = document.querySelector('.status-dot');
+  const statusText = document.getElementById('status-text');
+  
+  if (aiEnabled) {
+    statusDot.style.backgroundColor = '#4CAF50';
+    statusText.textContent = 'Real AI Active';
+  } else {
+    statusDot.style.backgroundColor = '#FF9800';
+    statusText.textContent = 'Fallback Mode';
+  }
+}
+
+// Add event listener for AI toggle
+document.addEventListener('DOMContentLoaded', () => {
+  const aiToggle = document.getElementById('ai-enabled');
+  if (aiToggle) {
+    aiToggle.addEventListener('change', updateStatusDisplay);
+  }
+});
 
 // Handle Enter key in chat input
 document.addEventListener('DOMContentLoaded', () => {

@@ -22,11 +22,7 @@
     <div id="chatbot-header" class="chatbot-header">
       <h3>🤖 BaZi AI Assistant</h3>
       <div class="chatbot-controls">
-        <label class="ai-toggle">
-          <input type="checkbox" id="ai-enabled" checked>
-          <span class="toggle-slider"></span>
-          <span class="toggle-label">AI Enabled</span>
-        </label>
+        <button id="admin-toggle" onclick="showAdminPanel()" title="Admin Panel">⚙️</button>
         <button id="chatbot-close" onclick="toggleChat()">×</button>
       </div>
     </div>
@@ -69,6 +65,34 @@
       <!-- Cart items will be displayed here -->
     </div>
   </section>
+
+  <!-- Admin Panel Modal -->
+  <div id="admin-modal" class="admin-modal">
+    <div class="admin-content">
+      <div class="admin-header">
+        <h3>🔐 Admin Panel</h3>
+        <button id="admin-close" onclick="closeAdminPanel()">×</button>
+      </div>
+      <div class="admin-body">
+        <div class="admin-section">
+          <h4>AI Control</h4>
+          <label class="ai-toggle">
+            <input type="checkbox" id="ai-enabled" checked>
+            <span class="toggle-slider"></span>
+            <span class="toggle-label">Real AI Enabled</span>
+          </label>
+          <p class="admin-info">When disabled, users get smart fallback responses. Only you can control this.</p>
+        </div>
+        <div class="admin-section">
+          <h4>Status</h4>
+          <div id="ai-status" class="status-indicator">
+            <span class="status-dot"></span>
+            <span id="status-text">Real AI Active</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <footer>
     <script src="config.js"></script>
