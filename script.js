@@ -723,7 +723,7 @@ function showAdminPanel() {
   
   if (!isAdmin) {
     const password = prompt('🔐 Admin Access Required\n\nEnter admin password:');
-    if (password === 'bazi2024admin') { // Change this to your secure password
+    if (password === 'magicbaziadmin88') { // Change this to your secure password
       sessionStorage.setItem('adminAuth', 'true');
       showAdminPanelContent();
     } else if (password !== null) {
