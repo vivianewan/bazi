@@ -13,8 +13,22 @@
       <button id="nav-analysis" onclick="showAnalysisPage()">BaZi Analysis</button>
       <button id="nav-products" onclick="showProductsPage()">All Products</button>
       <button id="nav-cart" onclick="showCart()">Cart (<span id="cart-count">0</span>)</button>
+      <button id="nav-chat" onclick="toggleChat()">AI Assistant</button>
     </nav>
   </header>
+
+  <!-- AI Chatbot -->
+  <div id="chatbot-container" class="chatbot-container">
+    <div id="chatbot-header" class="chatbot-header">
+      <h3>🤖 BaZi AI Assistant</h3>
+      <button id="chatbot-close" onclick="toggleChat()">×</button>
+    </div>
+    <div id="chatbot-messages" class="chatbot-messages"></div>
+    <div id="chatbot-input" class="chatbot-input">
+      <input type="text" id="chat-input" placeholder="Ask about BaZi, stones, or bracelets..." />
+      <button id="chat-send" onclick="sendMessage()">Send</button>
+    </div>
+  </div>
 
   <!-- 1️⃣ First: Birth Date and Time Section -->
   <section id="birthdate-input">

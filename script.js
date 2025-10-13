@@ -534,6 +534,154 @@ function updateCartCount() {
   document.getElementById('cart-count').textContent = totalItems;
 }
 
+// —— AI Chatbot Functions ——
+let isChatOpen = false;
+
+function toggleChat() {
+  const chatbot = document.getElementById('chatbot-container');
+  isChatOpen = !isChatOpen;
+  
+  if (isChatOpen) {
+    chatbot.style.display = 'block';
+    document.getElementById('chat-input').focus();
+    // Add welcome message if first time
+    if (document.getElementById('chatbot-messages').children.length === 0) {
+      addChatMessage('assistant', 'Hello! I\'m your BaZi AI Assistant. I can help you understand your BaZi analysis, explain stone meanings, and recommend the perfect bracelet for you. What would you like to know?');
+    }
+  } else {
+    chatbot.style.display = 'none';
+  }
+}
+
+function addChatMessage(sender, message) {
+  const messagesContainer = document.getElementById('chatbot-messages');
+  const messageDiv = document.createElement('div');
+  messageDiv.className = `chat-message ${sender}`;
+  
+  const timestamp = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+  messageDiv.innerHTML = `
+    <div class="message-content">
+      <div class="message-text">${message}</div>
+      <div class="message-time">${timestamp}</div>
+    </div>
+  `;
+  
+  messagesContainer.appendChild(messageDiv);
+  messagesContainer.scrollTop = messagesContainer.scrollHeight;
+}
+
+async function sendMessage() {
+  const input = document.getElementById('chat-input');
+  const message = input.value.trim();
+  
+  if (!message) return;
+  
+  // Add user message
+  addChatMessage('user', message);
+  input.value = '';
+  
+  // Show typing indicator
+  const typingDiv = document.createElement('div');
+  typingDiv.className = 'chat-message assistant typing';
+  typingDiv.innerHTML = `
+    <div class="message-content">
+      <div class="message-text">🤖 AI is thinking...</div>
+    </div>
+  `;
+  document.getElementById('chatbot-messages').appendChild(typingDiv);
+  
+  try {
+    // Get AI response
+    const response = await getAIResponse(message);
+    
+    // Remove typing indicator
+    document.getElementById('chatbot-messages').removeChild(typingDiv);
+    
+    // Add AI response
+    addChatMessage('assistant', response);
+  } catch (error) {
+    // Remove typing indicator
+    document.getElementById('chatbot-messages').removeChild(typingDiv);
+    
+    // Add error message
+    addChatMessage('assistant', 'Sorry, I\'m having trouble connecting right now. Please try again later.');
+    console.error('Chatbot error:', error);
+  }
+}
+
+async function getAIResponse(userMessage) {
+  // Create context about the website and products
+  const context = `
+You are a BaZi AI Assistant for a Chinese astrology bracelet customizer website. 
+You help customers understand their BaZi analysis, explain stone meanings, and recommend bracelets.
+
+Website Context:
+- We offer personalized BaZi analysis with 10 Gods system
+- We have 20+ stones across 5 elements (Wood, Fire, Earth, Metal, Water)
+- Products include: Green Phantom Quartz, Xinjiang Hetian Jade, Alashan Agate, Obsidian, etc.
+- We provide lucky colors, numbers, and element analysis
+- Customers can get personalized stone recommendations
+
+Available Stones by Element:
+Wood: Green Phantom Quartz, Peach Wood, Hainan Agarwood, Green Sandalwood
+Fire: Alashan Agate, Red Agate, Rose Quartz
+Earth: Xinjiang Old Yellow Jade, Xinjiang Hetian Jade, Shoushan Imperial Stone
+Metal: White Cat's Eye Stone, Sheep Fat White Jade
+Water: South African Blue Lace Agate, Obsidian
+
+Be helpful, knowledgeable about Chinese astrology, and encourage customers to try the BaZi analysis.
+Keep responses concise but informative.
+  `;
+
+  // For demo purposes, we'll use a simple response system
+  // In production, you'd integrate with OpenAI API
+  return await generateLocalResponse(userMessage, context);
+}
+
+async function generateLocalResponse(message, context) {
+  const lowerMessage = message.toLowerCase();
+  
+  // BaZi related responses
+  if (lowerMessage.includes('bazi') || lowerMessage.includes('八字')) {
+    return "BaZi (八字) is the Chinese system of four pillars representing your birth year, month, day, and hour. Each pillar contains a heavenly stem and earthly branch, revealing your elemental balance and personality traits. Try our BaZi analysis to discover your lucky elements, colors, and recommended stones!";
+  }
+  
+  if (lowerMessage.includes('element') || lowerMessage.includes('五行')) {
+    return "The Five Elements (五行) are Wood, Fire, Earth, Metal, and Water. Each element has specific characteristics, colors, and stones. Your BaZi analysis will show which elements are strong or weak in your chart, helping us recommend the perfect stones for your bracelet.";
+  }
+  
+  if (lowerMessage.includes('stone') || lowerMessage.includes('crystal') || lowerMessage.includes('jade')) {
+    return "We have beautiful stones for each element! For Wood: Green Phantom Quartz and Green Sandalwood. For Fire: Alashan Agate and Rose Quartz. For Earth: Xinjiang Hetian Jade and Shoushan Imperial Stone. For Metal: White Cat's Eye Stone. For Water: Obsidian and Blue Lace Agate. Each stone has unique properties and meanings!";
+  }
+  
+  if (lowerMessage.includes('lucky') || lowerMessage.includes('color') || lowerMessage.includes('number')) {
+    return "Your lucky colors and numbers are determined by your BaZi analysis! Based on your birth date and time, we calculate which elements are favorable for you, then recommend corresponding colors and numbers. Try our analysis to discover your personalized lucky elements!";
+  }
+  
+  if (lowerMessage.includes('bracelet') || lowerMessage.includes('recommend')) {
+    return "Our AI analyzes your BaZi to recommend the perfect stones for your bracelet! We match your favorable elements with corresponding stones and colors. After your analysis, you'll see personalized recommendations that bring you luck and positive energy.";
+  }
+  
+  if (lowerMessage.includes('help') || lowerMessage.includes('how')) {
+    return "I can help you with: 1) Understanding BaZi analysis and the 10 Gods system, 2) Explaining stone meanings and properties, 3) Recommending bracelets based on your elements, 4) Understanding lucky colors and numbers. Try our BaZi analysis first to get personalized insights!";
+  }
+  
+  // Default response
+  return "That's a great question! I'm here to help you understand BaZi analysis, stone meanings, and find the perfect bracelet for you. Try our BaZi analysis to get personalized recommendations, or ask me about specific stones or elements. What would you like to know more about?";
+}
+
+// Handle Enter key in chat input
+document.addEventListener('DOMContentLoaded', () => {
+  const chatInput = document.getElementById('chat-input');
+  if (chatInput) {
+    chatInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        sendMessage();
+      }
+    });
+  }
+});
+
 // —— 渲染与交互逻辑 ——
 window.addEventListener('DOMContentLoaded', () => {
   // Initialize cart count
@@ -603,17 +751,17 @@ window.addEventListener('DOMContentLoaded', () => {
 
     // Get recommended products
     const recommendedProducts = getRecommendedProducts(analysis.favorable, analysis.luckyColors);
-    
+
     res.innerHTML = `
       <div class="analysis-summary">
         <h3>Your BaZi Analysis</h3>
-        <p><strong>GanZhi:</strong> ${ganZhi}</p>
-        <p><strong>Star:</strong> ${star}</p>
+      <p><strong>GanZhi:</strong> ${ganZhi}</p>
+      <p><strong>Star:</strong> ${star}</p>
         <p><strong>Lucky Elements:</strong> ${formatE(analysis.favorable)}</p>
         <p><strong>Unlucky Elements:</strong> ${formatE(analysis.unfavorable)}</p>
         <p><strong>Lucky Colors:</strong> ${analysis.luckyColors.join(', ')}</p>
         <p><strong>Lucky Numbers:</strong> ${analysis.luckyNumbers.join(', ')}</p>
-        <p><strong>${dm}</strong></p>
+      <p><strong>${dm}</strong></p>
       </div>
       ${table}
       <div class="recommended-products">
