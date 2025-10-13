@@ -633,25 +633,28 @@ Be helpful, knowledgeable about Chinese astrology, and encourage customers to tr
 Keep responses concise but informative.
   `;
 
-  // Check if OpenAI API is available
-  if (typeof API_CONFIG !== 'undefined' && API_CONFIG.OPENAI_API_KEY && API_CONFIG.OPENAI_API_KEY !== 'your-openai-api-key-here') {
-    return await generateOpenAIResponse(userMessage, context);
+  // Check if OpenAI API is available (local config or Vercel environment)
+  const apiKey = (typeof API_CONFIG !== 'undefined' && API_CONFIG.OPENAI_API_KEY) || 
+                 (typeof process !== 'undefined' && process.env.OPENAI_API_KEY);
+  
+  if (apiKey && apiKey !== 'your-openai-api-key-here') {
+    return await generateOpenAIResponse(userMessage, context, apiKey);
   } else {
     // Fallback to local responses
     return await generateLocalResponse(userMessage, context);
   }
 }
 
-async function generateOpenAIResponse(message, context) {
+async function generateOpenAIResponse(message, context, apiKey) {
   try {
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${API_CONFIG.OPENAI_API_KEY}`
+        'Authorization': `Bearer ${apiKey}`
       },
       body: JSON.stringify({
-        model: API_CONFIG.OPENAI_MODEL || 'gpt-4o-mini',
+        model: (typeof API_CONFIG !== 'undefined' && API_CONFIG.OPENAI_MODEL) || 'gpt-4o-mini',
         messages: [
           {
             role: 'system',
