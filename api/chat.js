@@ -1,4 +1,6 @@
 export default async function handler(req, res) {
+  console.log('API route called:', req.method, req.url);
+  
   // Set CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -15,6 +17,8 @@ export default async function handler(req, res) {
 
   try {
     const { message, context } = req.body;
+    console.log('Received message:', message);
+    console.log('API Key available:', !!process.env.OPENAI_API_KEY);
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',

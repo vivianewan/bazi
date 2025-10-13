@@ -633,20 +633,20 @@ Be helpful, knowledgeable about Chinese astrology, and encourage customers to tr
 Keep responses concise but informative.
   `;
 
-  // Check if OpenAI API is available (local config or Vercel environment)
-  const apiKey = (typeof API_CONFIG !== 'undefined' && API_CONFIG.OPENAI_API_KEY) || 
-                 (typeof process !== 'undefined' && process.env.OPENAI_API_KEY);
-  
-  if (apiKey && apiKey !== 'your-openai-api-key-here') {
-    return await generateOpenAIResponse(userMessage, context, apiKey);
-  } else {
-    // Fallback to local responses
+  // Always try API route first (for Vercel deployment)
+  // Fallback to local config only if API route fails
+  try {
+    return await generateOpenAIResponse(userMessage, context);
+  } catch (error) {
+    console.log('API route failed, using fallback:', error);
     return await generateLocalResponse(userMessage, context);
   }
 }
 
-async function generateOpenAIResponse(message, context, apiKey) {
+async function generateOpenAIResponse(message, context) {
   try {
+    console.log('Attempting API call to /api/chat');
+    
     // Use Vercel API route for serverless function
     const response = await fetch('/api/chat', {
       method: 'POST',
@@ -659,16 +659,20 @@ async function generateOpenAIResponse(message, context, apiKey) {
       })
     });
 
+    console.log('API response status:', response.status);
+
     if (!response.ok) {
-      throw new Error(`API error: ${response.status}`);
+      const errorText = await response.text();
+      console.error('API error response:', errorText);
+      throw new Error(`API error: ${response.status} - ${errorText}`);
     }
 
     const data = await response.json();
+    console.log('API response data:', data);
     return data.response;
   } catch (error) {
     console.error('API Error:', error);
-    // Fallback to local response
-    return await generateLocalResponse(message, context);
+    throw error; // Re-throw to trigger fallback
   }
 }
 
