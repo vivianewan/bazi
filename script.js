@@ -647,37 +647,26 @@ Keep responses concise but informative.
 
 async function generateOpenAIResponse(message, context, apiKey) {
   try {
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    // Use Vercel API route for serverless function
+    const response = await fetch('/api/chat', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`
+        'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        model: (typeof API_CONFIG !== 'undefined' && API_CONFIG.OPENAI_MODEL) || 'gpt-4o-mini',
-        messages: [
-          {
-            role: 'system',
-            content: context
-          },
-          {
-            role: 'user',
-            content: message
-          }
-        ],
-        max_tokens: API_CONFIG.OPENAI_MAX_TOKENS || 500,
-        temperature: 0.7
+        message: message,
+        context: context
       })
     });
 
     if (!response.ok) {
-      throw new Error(`OpenAI API error: ${response.status}`);
+      throw new Error(`API error: ${response.status}`);
     }
 
     const data = await response.json();
-    return data.choices[0].message.content;
+    return data.response;
   } catch (error) {
-    console.error('OpenAI API Error:', error);
+    console.error('API Error:', error);
     // Fallback to local response
     return await generateLocalResponse(message, context);
   }
