@@ -718,14 +718,41 @@ async function generateLocalResponse(message, context) {
 
 // —— Admin Panel Functions ——
 function showAdminPanel() {
+  // Check if user is authenticated as admin
+  const isAdmin = checkAdminAuth();
+  
+  if (!isAdmin) {
+    const password = prompt('🔐 Admin Access Required\n\nEnter admin password:');
+    if (password === 'bazi2024admin') { // Change this to your secure password
+      sessionStorage.setItem('adminAuth', 'true');
+      showAdminPanelContent();
+    } else if (password !== null) {
+      alert('❌ Invalid password. Access denied.');
+    }
+  } else {
+    showAdminPanelContent();
+  }
+}
+
+function showAdminPanelContent() {
   const modal = document.getElementById('admin-modal');
   modal.style.display = 'flex';
   updateStatusDisplay();
 }
 
+function checkAdminAuth() {
+  return sessionStorage.getItem('adminAuth') === 'true';
+}
+
 function closeAdminPanel() {
   const modal = document.getElementById('admin-modal');
   modal.style.display = 'none';
+}
+
+function logoutAdmin() {
+  sessionStorage.removeItem('adminAuth');
+  closeAdminPanel();
+  alert('✅ Admin session ended. You will need to re-authenticate to access admin controls.');
 }
 
 function updateStatusDisplay() {
