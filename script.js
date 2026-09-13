@@ -313,18 +313,27 @@ function analyzeElements(pillars, dayP) {
   const min = Math.min(...entries.map(([, c]) => c));
   const strong = entries.find(([, c]) => c === max)[0];
   const weak = entries.find(([, c]) => c === min)[0];
-  const fav = [weak]; const gen = ELEMENT_RELATIONS[weak].generated_by; if (gen !== weak) fav.push(gen);
-  const unf = [strong]; const rst = ELEMENT_RELATIONS[strong].restricted_by; if (rst !== strong) unf.push(rst);
-  
-  // Get lucky colors and numbers for favorable elements
-  const luckyColors = [...new Set(fav.flatMap(el => ELEMENT_COLORS[el]))];
-  const luckyNumbers = [...new Set(fav.flatMap(el => ELEMENT_NUMBERS[el]))];
-  const unluckyColors = [...new Set(unf.flatMap(el => ELEMENT_COLORS[el]))];
-  const unluckyNumbers = [...new Set(unf.flatMap(el => ELEMENT_NUMBERS[el]))];
-  
-  return { 
-    favorable: fav, 
-    unfavorable: unf,
+
+  // Strengthen the weak; avoid feeding the strong. Never list an element in both.
+  const fav = [weak];
+  const supportWeak = ELEMENT_RELATIONS[weak].generated_by;
+  if (supportWeak !== weak) fav.push(supportWeak);
+
+  const unf = [strong];
+  const feedStrong = ELEMENT_RELATIONS[strong].generated_by;
+  if (feedStrong !== strong) unf.push(feedStrong);
+
+  const favorable = [...new Set(fav)];
+  const unfavorable = [...new Set(unf)].filter(el => !favorable.includes(el));
+
+  const luckyColors = [...new Set(favorable.flatMap(el => ELEMENT_COLORS[el]))];
+  const luckyNumbers = [...new Set(favorable.flatMap(el => ELEMENT_NUMBERS[el]))];
+  const unluckyColors = [...new Set(unfavorable.flatMap(el => ELEMENT_COLORS[el]))];
+  const unluckyNumbers = [...new Set(unfavorable.flatMap(el => ELEMENT_NUMBERS[el]))];
+
+  return {
+    favorable,
+    unfavorable,
     luckyColors,
     luckyNumbers,
     unluckyColors,
