@@ -187,39 +187,6 @@ const products = [
 // Legacy materials array for backward compatibility
 const materials = products;
 
-// —— 累计天数 / 日干支与二十八宿（与日柱同一套甲戌起算）——
-function calculateTotalDays(date) {
-  const base = Date.UTC(1900, 0, 1);
-  const target = Date.UTC(date.getFullYear(), date.getMonth(), date.getDate());
-  return Math.floor((target - base) / 86400000);
-}
-
-function calculateGanZhiAndStars(totalDays) {
-  const GANZHI_CYCLE = [
-    '甲子', '乙丑', '丙寅', '丁卯', '戊辰', '己巳', '庚午', '辛未', '壬申', '癸酉',
-    '甲戌', '乙亥', '丙子', '丁丑', '戊寅', '己卯', '庚辰', '辛巳', '壬午', '癸未',
-    '甲申', '乙酉', '丙戌', '丁亥', '戊子', '己丑', '庚寅', '辛卯', '壬辰', '癸巳',
-    '甲午', '乙未', '丙申', '丁酉', '戊戌', '己亥', '庚子', '辛丑', '壬寅', '癸卯',
-    '甲辰', '乙巳', '丙午', '丁未', '戊申', '己酉', '庚戌', '辛亥', '壬子', '癸丑',
-    '甲寅', '乙卯', '丙辰', '丁巳', '戊午', '己未', '庚申', '辛酉', '壬戌', '癸亥'
-  ];
-  const TWENTY_EIGHT_STARS = [
-    '角', '亢', '氐', '房', '心', '尾', '箕', '斗', '牛', '女', '虚', '危', '室', '壁',
-    '奎', '娄', '胃', '昴', '毕', '觜', '参', '井', '鬼', '柳', '星', '张', '翼', '轸'
-  ];
-  // 1900-01-01 = 甲戌 → 在六十甲子中索引 10
-  const ganZhiIndex = ((totalDays + 10) % 60 + 60) % 60;
-  const starIndex = ((totalDays + 23) % 28 + 28) % 28;
-  return {
-    ganZhi: GANZHI_CYCLE[ganZhiIndex],
-    star: TWENTY_EIGHT_STARS[starIndex]
-  };
-}
-
-// —— 节气近似日（公历月内“节”交节日，用于换月/立春换年）——
-// 顺序对应公历 1–12 月：小寒、立春、惊蛰、清明、立夏、芒种、小暑、立秋、白露、寒露、立冬、大雪
-const JIE_APPROX_DAY = [6, 4, 6, 5, 6, 6, 7, 8, 8, 8, 7, 7];
-
 // 月令主气（简化旺衰：得令看月支五行）
 const MONTH_COMMAND = {
   寅: 'Wood', 卯: 'Wood',
@@ -233,68 +200,44 @@ function isYangStem(stem) {
   return HEAVENLY_STEMS.indexOf(stem) % 2 === 0;
 }
 
-/** 立春换年、节气换月 → 八字年/寅起月序(0=寅 … 11=丑) */
-function getBaziYearAndMonthIndex(date) {
-  let year = date.getFullYear();
-  const month = date.getMonth(); // 0–11
-  const day = date.getDate();
-  let jieMonth = month; // 公历月索引，节前退一月
-  if (day < JIE_APPROX_DAY[month]) jieMonth -= 1;
-  // 立春前仍属上一年（jieMonth < 1 表示还在丑月）
-  if (jieMonth < 1) year -= 1;
-  // 寅月=0：公历立春后的 2 月为寅
-  const monthIndex = (jieMonth - 1 + 12) % 12;
-  return { baziYear: year, monthIndex };
-}
-
-function getYearPillar(baziYear) {
-  const stem = HEAVENLY_STEMS[((baziYear - 4) % 10 + 10) % 10];
-  const branch = EARTHLY_BRANCHES[((baziYear - 4) % 12 + 12) % 12];
-  return stem + branch;
-}
-
-/** 五虎遁：甲己丙、乙庚戊、丙辛庚、丁壬壬、戊癸甲 */
-function getMonthPillar(yearStem, monthIndex) {
-  const yearStemIndex = HEAVENLY_STEMS.indexOf(yearStem);
-  const monthStemIndex = ((yearStemIndex % 5 + 1) * 2 + monthIndex) % 10;
-  const monthBranch = EARTHLY_BRANCHES[(monthIndex + 2) % 12];
-  return HEAVENLY_STEMS[monthStemIndex] + monthBranch;
-}
-
-/** 日柱：1900-01-01 = 甲戌（UTC 日历日，避免时区把日干支弄错） */
-function getDayPillar(date) {
-  const base = Date.UTC(1900, 0, 1);
-  const target = Date.UTC(date.getFullYear(), date.getMonth(), date.getDate());
-  const days = Math.floor((target - base) / 86400000);
-  const stem = HEAVENLY_STEMS[((days % 10) + 10) % 10];
-  const branch = EARTHLY_BRANCHES[((days + 10) % 12 + 12) % 12];
-  return stem + branch;
-}
-
-function getHourBranchIndex(hour) {
-  return Math.floor(((hour + 1) % 24) / 2) % 12;
-}
-
-/** 五鼠遁：甲己甲、乙庚丙、丙辛戊、丁壬庚、戊癸壬 */
-function getHourPillar(dayStem, hour) {
-  const dayStemIndex = HEAVENLY_STEMS.indexOf(dayStem);
-  const branchIndex = getHourBranchIndex(hour);
-  const stemIndex = ((dayStemIndex % 5) * 2 + branchIndex) % 10;
-  return HEAVENLY_STEMS[stemIndex] + EARTHLY_BRANCHES[branchIndex];
-}
-
+/**
+ * 四柱排盘：委托 lunar-javascript（CDN 全局 Solar）
+ * 文档: https://github.com/6tail/lunar-javascript
+ */
 function calculateBaZi(dt) {
-  const hour = dt.getHours();
-  // 晚子时（23:00后）多数流派按次日排日柱
-  const dateForDay = new Date(dt);
-  if (hour >= 23) dateForDay.setDate(dateForDay.getDate() + 1);
-
-  const { baziYear, monthIndex } = getBaziYearAndMonthIndex(dateForDay);
-  const year = getYearPillar(baziYear);
-  const month = getMonthPillar(year[0], monthIndex);
-  const day = getDayPillar(dateForDay);
-  const hourPillar = getHourPillar(day[0], hour);
-  return { year, month, day, hour: hourPillar };
+  if (typeof Solar === 'undefined') {
+    throw new Error('lunar-javascript failed to load (Solar is undefined)');
+  }
+  const solar = Solar.fromYmdHms(
+    dt.getFullYear(),
+    dt.getMonth() + 1,
+    dt.getDate(),
+    dt.getHours(),
+    dt.getMinutes(),
+    dt.getSeconds() || 0
+  );
+  const lunar = solar.getLunar();
+  const eightChar = lunar.getEightChar();
+  return {
+    year: eightChar.getYear(),
+    month: eightChar.getMonth(),
+    day: eightChar.getDay(),
+    hour: eightChar.getTime(),
+    ganZhi: eightChar.getDay(),
+    star: typeof lunar.getXiu === 'function' ? lunar.getXiu() : '',
+    tenGods: {
+      year: eightChar.getYearShiShenGan(),
+      month: eightChar.getMonthShiShenGan(),
+      day: eightChar.getDayShiShenGan(),
+      hour: eightChar.getTimeShiShenGan()
+    },
+    naYin: {
+      year: eightChar.getYearNaYin(),
+      month: eightChar.getMonthNaYin(),
+      day: eightChar.getDayNaYin(),
+      hour: eightChar.getTimeNaYin()
+    }
+  };
 }
 
 // —— 五行生克关系 ——
@@ -904,9 +847,13 @@ window.addEventListener('DOMContentLoaded', () => {
       return; 
     }
 
-    const totalDays = calculateTotalDays(dt);
-    const { ganZhi, star } = calculateGanZhiAndStars(totalDays);
-    const bz = calculateBaZi(dt);
+    let bz;
+    try {
+      bz = calculateBaZi(dt);
+    } catch (err) {
+      res.innerHTML = `<div class="error">BaZi library error: ${err.message}</div>`;
+      return;
+    }
     const analysis = analyzeElements([bz.year, bz.month, bz.day, bz.hour], bz.day);
 
     const formatE = arr => arr.map(e => `<span class="element-${e.toLowerCase()}">${CH_ELEMENT[e]}</span>`).join(', ');
@@ -920,12 +867,12 @@ window.addEventListener('DOMContentLoaded', () => {
     }).join('');
     const fourPillars = `${colorize(bz.year)}　${colorize(bz.month)}　${colorize(bz.day)}　${colorize(bz.hour)}`;
 
-    // Calculate 10 Gods for each pillar
+    // 十神优先用 lunar-javascript；本地 getTenGods 作兜底
     const dayStem = bz.day[0];
-    const tenGods = {
+    const tenGods = bz.tenGods || {
       year: getTenGods(dayStem, bz.year[0]),
       month: getTenGods(dayStem, bz.month[0]),
-      day: '日主 (Day Master)',
+      day: '日主',
       hour: getTenGods(dayStem, bz.hour[0])
     };
 
@@ -937,8 +884,13 @@ window.addEventListener('DOMContentLoaded', () => {
       `<tr><td>Hour</td><td>${colorize(bz.hour)}</td><td>${formatE([ELEMENT_MAP[bz.hour[0]], ELEMENT_MAP[bz.hour[1]]])}</td><td>${tenGods.hour}</td></tr>` +
       `</table>`;
 
-    // Get recommended products
     const recommendedProducts = getRecommendedProducts(analysis.favorable, analysis.luckyColors);
+    const starLine = bz.star
+      ? `<p><strong>二十八宿:</strong> ${bz.ganZhi || bz.day} · ${bz.star}</p>`
+      : '';
+    const naYinLine = bz.naYin
+      ? `<p><strong>纳音:</strong> ${bz.naYin.year} / ${bz.naYin.month} / ${bz.naYin.day} / ${bz.naYin.hour}</p>`
+      : '';
 
     res.innerHTML = `
       <div class="analysis-summary">
@@ -949,7 +901,9 @@ window.addEventListener('DOMContentLoaded', () => {
         <p><strong>Unlucky Elements (忌神):</strong> ${formatE(analysis.unfavorable)}</p>
         <p><strong>Lucky Colors:</strong> ${analysis.luckyColors.join(', ')}</p>
         <p><strong>Lucky Numbers:</strong> ${analysis.luckyNumbers.join(', ')}</p>
-        <p><strong>Reference Star:</strong> ${ganZhi} · ${star}</p>
+        ${starLine}
+        ${naYinLine}
+        <p style="color:#888;font-size:12px;">Pillars via <a href="https://github.com/6tail/lunar-javascript" target="_blank" rel="noopener">lunar-javascript</a></p>
       </div>
       ${table}
       <div class="recommended-products">
