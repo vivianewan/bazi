@@ -251,11 +251,11 @@ const ELEMENT_RELATIONS = {
 
 // —— 五行对应的颜色和数字 ——
 const ELEMENT_COLORS = {
-  Wood: ['Green', 'Teal', 'Light Blue', 'Emerald'],
-  Fire: ['Red', 'Orange', 'Pink', 'Purple', 'Coral'],
-  Earth: ['Yellow', 'Brown', 'Beige', 'Gold', 'Amber'],
-  Metal: ['White', 'Silver', 'Gray', 'Platinum'],
-  Water: ['Black', 'Dark Blue', 'Navy', 'Midnight Blue']
+  Wood: ['Green', 'Teal', 'Emerald', 'Dark Green'],
+  Fire: ['Red', 'Orange', 'Pink', 'Purple', 'Coral', 'Rose'],
+  Earth: ['Yellow', 'Brown', 'Beige', 'Amber'],
+  Metal: ['White', 'Silver', 'Gray', 'Platinum', 'Gold', 'Cream'],
+  Water: ['Black', 'Dark Blue', 'Navy', 'Midnight Blue', 'Blue', 'Light Blue']
 };
 
 const ELEMENT_NUMBERS = {
@@ -353,12 +353,44 @@ function analyzeElements(pillars, dayPillar) {
   };
 }
 
-// —— 产品推荐系统 ——
-function getRecommendedProducts(favorableElements, luckyColors) {
-  return products.filter(product => 
-    favorableElements.includes(product.element) ||
-    product.colors.some(color => luckyColors.includes(color))
-  ).slice(0, 6); // Show top 6 recommendations
+// —— 产品推荐：① 喜用神材质优先 ② 无对应材质时才按幸运色；始终排除忌神材质 ——
+function getRecommendedProducts(favorableElements, luckyColors, unfavorableElements = [], limit = 6) {
+  const unlucky = new Set(unfavorableElements || []);
+  const fav = favorableElements || [];
+  const colors = new Set(luckyColors || []);
+
+  const notUnlucky = (p) => !unlucky.has(p.element);
+
+  // 1) 材质五行 ∈ 喜用神（且不是忌神）
+  const byElement = products.filter(
+    (p) => fav.includes(p.element) && notUnlucky(p)
+  );
+
+  if (byElement.length > 0) {
+    // 尽量覆盖每个喜用神各至少一件，再补齐其余同元素材质
+    const picked = [];
+    const used = new Set();
+    for (const el of fav) {
+      const hit = byElement.find((p) => p.element === el && !used.has(p.id));
+      if (hit) {
+        picked.push(hit);
+        used.add(hit.id);
+      }
+    }
+    for (const p of byElement) {
+      if (picked.length >= limit) break;
+      if (!used.has(p.id)) {
+        picked.push(p);
+        used.add(p.id);
+      }
+    }
+    return picked.slice(0, limit);
+  }
+
+  // 2) 没有任何喜用神材质时，才用幸运色兜底（仍排除忌神五行）
+  return products
+    .filter((p) => notUnlucky(p) && p.colors.some((c) => colors.has(c)))
+    .slice(0, limit);
 }
 
 function showProductDetails(productId) {
@@ -884,7 +916,11 @@ window.addEventListener('DOMContentLoaded', () => {
       `<tr><td>Hour</td><td>${colorize(bz.hour)}</td><td>${formatE([ELEMENT_MAP[bz.hour[0]], ELEMENT_MAP[bz.hour[1]]])}</td><td>${tenGods.hour}</td></tr>` +
       `</table>`;
 
-    const recommendedProducts = getRecommendedProducts(analysis.favorable, analysis.luckyColors);
+    const recommendedProducts = getRecommendedProducts(
+      analysis.favorable,
+      analysis.luckyColors,
+      analysis.unfavorable
+    );
     const starLine = bz.star
       ? `<p><strong>二十八宿:</strong> ${bz.ganZhi || bz.day} · ${bz.star}</p>`
       : '';
