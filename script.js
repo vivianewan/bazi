@@ -187,64 +187,66 @@ const products = [
 // Legacy materials array for backward compatibility
 const materials = products;
 
-// —— 累计天数计算 ——
-// 基准日期：1900-01-01
-function calculateTotalDays(date) {
-  const baseDate = new Date(1900, 0, 1); // 基准日期
-  const diffTime = date - baseDate; // 时间差（毫秒）
-  return Math.floor(diffTime / (1000 * 60 * 60 * 24)); // 转换为天数
+// 月令主气（简化旺衰：得令看月支五行）
+const MONTH_COMMAND = {
+  寅: 'Wood', 卯: 'Wood',
+  巳: 'Fire', 午: 'Fire',
+  申: 'Metal', 酉: 'Metal',
+  亥: 'Water', 子: 'Water',
+  辰: 'Earth', 戌: 'Earth', 丑: 'Earth', 未: 'Earth'
+};
+
+function isYangStem(stem) {
+  return HEAVENLY_STEMS.indexOf(stem) % 2 === 0;
 }
 
-// —— 干支与二十八宿计算 ——
-function calculateGanZhiAndStars(totalDays) {
-  const HEAVENLY_STEMS = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸'];
-  const EARTHLY_BRANCHES = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥'];
-  const GANZHI_CYCLE = [
-    '甲子', '乙丑', '丙寅', '丁卯', '戊辰', '己巳', '庚午', '辛未', '壬申', '癸酉',
-    '甲戌', '乙亥', '丙子', '丁丑', '戊寅', '己卯', '庚辰', '辛巳', '壬午', '癸未',
-    '甲申', '乙酉', '丙戌', '丁亥', '戊子', '己丑', '庚寅', '辛卯', '壬辰', '癸巳',
-    '甲午', '乙未', '丙申', '丁酉', '戊戌', '己亥', '庚子', '辛丑', '壬寅', '癸卯',
-    '甲辰', '乙巳', '丙午', '丁未', '戊申', '己酉', '庚戌', '辛亥', '壬子', '癸丑',
-    '甲寅', '乙卯', '丙辰', '丁巳', '戊午', '己未', '庚申', '辛酉', '壬戌', '癸亥'
-  ];
-  const TWENTY_EIGHT_STARS = [
-    '角', '亢', '氐', '房', '心', '尾', '箕', '斗', '牛', '女', '虚', '危', '室', '壁',
-    '奎', '娄', '胃', '昴', '毕', '觜', '参', '井', '鬼', '柳', '星', '张', '翼', '轸'
-  ];
-  const ganZhiIndex = (totalDays + 9) % 60; // 偏移量9
-  const starIndex = (totalDays + 23) % 28; // 偏移量23
-  return {
-    ganZhi: GANZHI_CYCLE[ganZhiIndex],
-    star: TWENTY_EIGHT_STARS[starIndex]
-  };
-}
-
-// —— 四柱计算函数 ——
-function getYearStem(y) { return HEAVENLY_STEMS[(y - 4 + 1000) % 10]; }
-function getYearBranch(y) { return EARTHLY_BRANCHES[(y - 4 + 1200) % 12]; }
-function getMonthStem(y, m) { const i = HEAVENLY_STEMS.indexOf(getYearStem(y)); return HEAVENLY_STEMS[(i * 2 + m - 2 + 1000) % 10]; }
-function getMonthBranch(m) { return EARTHLY_BRANCHES[(m + 1) % 12]; }
-function getDayStem(d) { const base = new Date(1900, 0, 1); const days = Math.floor((d - base) / 86400000); return HEAVENLY_STEMS[(days + 6) % 10]; }
-function getDayBranch(d) { const base = new Date(1900, 0, 1); const days = Math.floor((d - base) / 86400000); return EARTHLY_BRANCHES[days % 12]; }
-function getHourBranch(h) { h = (h + 24) % 24; if (h < 1 || h >= 23) return '子'; if (h < 3) return '丑'; if (h < 5) return '寅'; if (h < 7) return '卯'; if (h < 9) return '辰'; if (h < 11) return '巳'; if (h < 13) return '午'; if (h < 15) return '未'; if (h < 17) return '申'; if (h < 19) return '酉'; if (h < 21) return '戌'; return '亥'; }
-function getHourStem(ds, h) { const si = HEAVENLY_STEMS.indexOf(ds); const bi = Math.floor((h + 1) / 2) % 12; return HEAVENLY_STEMS[(si * 2 + bi) % 10]; }
-
+/**
+ * 四柱排盘：委托 lunar-javascript（CDN 全局 Solar）
+ * 文档: https://github.com/6tail/lunar-javascript
+ */
 function calculateBaZi(dt) {
-  const y = dt.getFullYear(), m = dt.getMonth() + 1, h = dt.getHours();
-  const yS = getYearStem(y), yB = getYearBranch(y);
-  const mS = getMonthStem(y, m), mB = getMonthBranch(m);
-  const dS = getDayStem(dt), dB = getDayBranch(dt);
-  const hB = getHourBranch(h), hS = getHourStem(dS, h);
-  return { year: yS + yB, month: mS + mB, day: dS + dB, hour: hS + hB };
+  if (typeof Solar === 'undefined') {
+    throw new Error('lunar-javascript failed to load (Solar is undefined)');
+  }
+  const solar = Solar.fromYmdHms(
+    dt.getFullYear(),
+    dt.getMonth() + 1,
+    dt.getDate(),
+    dt.getHours(),
+    dt.getMinutes(),
+    dt.getSeconds() || 0
+  );
+  const lunar = solar.getLunar();
+  const eightChar = lunar.getEightChar();
+  return {
+    year: eightChar.getYear(),
+    month: eightChar.getMonth(),
+    day: eightChar.getDay(),
+    hour: eightChar.getTime(),
+    ganZhi: eightChar.getDay(),
+    star: typeof lunar.getXiu === 'function' ? lunar.getXiu() : '',
+    tenGods: {
+      year: eightChar.getYearShiShenGan(),
+      month: eightChar.getMonthShiShenGan(),
+      day: eightChar.getDayShiShenGan(),
+      hour: eightChar.getTimeShiShenGan()
+    },
+    naYin: {
+      year: eightChar.getYearNaYin(),
+      month: eightChar.getMonthNaYin(),
+      day: eightChar.getDayNaYin(),
+      hour: eightChar.getTimeNaYin()
+    }
+  };
 }
 
 // —— 五行生克关系 ——
 const ELEMENT_RELATIONS = {
-  Wood: { generated_by: 'Water', generates: 'Fire', restricted_by: 'Metal' },
-  Fire: { generated_by: 'Wood', generates: 'Earth', restricted_by: 'Water' },
-  Earth: { generated_by: 'Fire', generates: 'Metal', restricted_by: 'Wood' },
-  Metal: { generated_by: 'Earth', generates: 'Water', restricted_by: 'Fire' },
-  Water: { generated_by: 'Metal', generates: 'Wood', restricted_by: 'Earth' }
+  Wood: { generated_by: 'Water', generates: 'Fire', restricted_by: 'Metal', restricts: 'Earth' },
+  Fire: { generated_by: 'Wood', generates: 'Earth', restricted_by: 'Water', restricts: 'Metal' },
+  Earth: { generated_by: 'Fire', generates: 'Metal', restricted_by: 'Wood', restricts: 'Water' },
+  Metal: { generated_by: 'Earth', generates: 'Water', restricted_by: 'Fire', restricts: 'Wood' },
+  Water: { generated_by: 'Metal', generates: 'Wood', restricted_by: 'Earth', restricts: 'Fire' }
 };
 
 // —— 五行对应的颜色和数字 ——
@@ -281,64 +283,73 @@ const TEN_GODS = {
 function getTenGods(dayStem, otherStem) {
   const dayElement = ELEMENT_MAP[dayStem];
   const otherElement = ELEMENT_MAP[otherStem];
-  
-  if (dayElement === otherElement) {
-    return '比肩';
-  }
-  
+  const samePolarity = isYangStem(dayStem) === isYangStem(otherStem);
   const relations = ELEMENT_RELATIONS[dayElement];
-  
-  if (otherElement === relations.generated_by) {
-    return '正印';
-  }
-  if (otherElement === relations.generates) {
-    return '食神';
-  }
-  if (otherElement === relations.restricted_by) {
-    return '正官';
-  }
-  if (otherElement === relations.restricts) {
-    return '正财';
-  }
-  
+
+  if (otherElement === dayElement) return samePolarity ? '比肩' : '劫财';
+  if (otherElement === relations.generated_by) return samePolarity ? '偏印' : '正印';
+  if (otherElement === relations.generates) return samePolarity ? '食神' : '伤官';
+  if (otherElement === relations.restricts) return samePolarity ? '偏财' : '正财';
+  if (otherElement === relations.restricted_by) return samePolarity ? '七杀' : '正官';
   return '偏财';
 }
 
-function analyzeElements(pillars, dayP) {
-  const arr = pillars.flatMap(p => [p[0], p[1]]).map(c => ELEMENT_MAP[c]);
+/** 以日主旺衰取喜用神（子平简化）：得令/生扶 vs 克泄耗 */
+function analyzeElements(pillars, dayPillar) {
+  const dayStem = dayPillar[0];
+  const dayMaster = ELEMENT_MAP[dayStem];
+  const relations = ELEMENT_RELATIONS[dayMaster];
+  const monthBranch = pillars[1][1];
+  const monthQi = MONTH_COMMAND[monthBranch];
+
   const cnt = { Wood: 0, Fire: 0, Earth: 0, Metal: 0, Water: 0 };
-  arr.forEach(e => cnt[e]++);
-  const entries = Object.entries(cnt);
-  const max = Math.max(...entries.map(([, c]) => c));
-  const min = Math.min(...entries.map(([, c]) => c));
-  const strong = entries.find(([, c]) => c === max)[0];
-  const weak = entries.find(([, c]) => c === min)[0];
+  pillars.forEach((pillar, i) => {
+    const stemEl = ELEMENT_MAP[pillar[0]];
+    const branchEl = ELEMENT_MAP[pillar[1]];
+    // 天干权重略高于地支；月支再加权（月令）
+    cnt[stemEl] += 2;
+    cnt[branchEl] += i === 1 ? 3 : 1;
+  });
 
-  // Strengthen the weak; avoid feeding the strong. Never list an element in both.
-  const fav = [weak];
-  const supportWeak = ELEMENT_RELATIONS[weak].generated_by;
-  if (supportWeak !== weak) fav.push(supportWeak);
+  let support = cnt[dayMaster] + cnt[relations.generated_by];
+  let drain =
+    cnt[relations.generates] +
+    cnt[relations.restricts] +
+    cnt[relations.restricted_by];
 
-  const unf = [strong];
-  const feedStrong = ELEMENT_RELATIONS[strong].generated_by;
-  if (feedStrong !== strong) unf.push(feedStrong);
+  // 月令得气：同我/生我为助，克我/泄我/耗我为损
+  if (monthQi === dayMaster) support += 4;
+  else if (monthQi === relations.generated_by) support += 3;
+  else if (monthQi === relations.restricted_by) drain += 4;
+  else if (monthQi === relations.restricts) drain += 3;
+  else if (monthQi === relations.generates) drain += 2;
 
-  const favorable = [...new Set(fav)];
-  const unfavorable = [...new Set(unf)].filter(el => !favorable.includes(el));
+  const isWeak = support <= drain;
 
-  const luckyColors = [...new Set(favorable.flatMap(el => ELEMENT_COLORS[el]))];
-  const luckyNumbers = [...new Set(favorable.flatMap(el => ELEMENT_NUMBERS[el]))];
-  const unluckyColors = [...new Set(unfavorable.flatMap(el => ELEMENT_COLORS[el]))];
-  const unluckyNumbers = [...new Set(unfavorable.flatMap(el => ELEMENT_NUMBERS[el]))];
+  // 身弱喜印比，忌官杀财食伤；身强喜食伤财官，忌印比
+  let favorable;
+  let unfavorable;
+  if (isWeak) {
+    favorable = [dayMaster, relations.generated_by];
+    unfavorable = [relations.restricted_by, relations.restricts, relations.generates];
+  } else {
+    favorable = [relations.generates, relations.restricts];
+    unfavorable = [dayMaster, relations.generated_by, relations.restricted_by];
+  }
+
+  favorable = [...new Set(favorable)];
+  unfavorable = [...new Set(unfavorable)].filter(el => !favorable.includes(el));
 
   return {
     favorable,
     unfavorable,
-    luckyColors,
-    luckyNumbers,
-    unluckyColors,
-    unluckyNumbers,
-    elementCounts: cnt
+    luckyColors: [...new Set(favorable.flatMap(el => ELEMENT_COLORS[el]))],
+    luckyNumbers: [...new Set(favorable.flatMap(el => ELEMENT_NUMBERS[el]))],
+    unluckyColors: [...new Set(unfavorable.flatMap(el => ELEMENT_COLORS[el]))],
+    unluckyNumbers: [...new Set(unfavorable.flatMap(el => ELEMENT_NUMBERS[el]))],
+    elementCounts: cnt,
+    dayMaster,
+    strength: isWeak ? 'weak' : 'strong'
   };
 }
 
@@ -836,24 +847,32 @@ window.addEventListener('DOMContentLoaded', () => {
       return; 
     }
 
-    const totalDays = calculateTotalDays(dt);
-    const { ganZhi, star } = calculateGanZhiAndStars(totalDays);
-    const bz = calculateBaZi(dt);
+    let bz;
+    try {
+      bz = calculateBaZi(dt);
+    } catch (err) {
+      res.innerHTML = `<div class="error">BaZi library error: ${err.message}</div>`;
+      return;
+    }
     const analysis = analyzeElements([bz.year, bz.month, bz.day, bz.hour], bz.day);
 
     const formatE = arr => arr.map(e => `<span class="element-${e.toLowerCase()}">${CH_ELEMENT[e]}</span>`).join(', ');
-    const dm = `Day Master: ${bz.day} (` + `<span class="element-${ELEMENT_MAP[bz.day[0]].toLowerCase()}">${CH_ELEMENT[ELEMENT_MAP[bz.day[0]]]}</span>)`;
+    const strengthLabel = analysis.strength === 'weak' ? '身弱 (Weak)' : '身强 (Strong)';
+    const dm = `Day Master: ${bz.day} (` +
+      `<span class="element-${ELEMENT_MAP[bz.day[0]].toLowerCase()}">${CH_ELEMENT[ELEMENT_MAP[bz.day[0]]]}</span>` +
+      `) · ${strengthLabel}`;
     const colorize = gh => gh.split('').map(ch => {
       const el = ELEMENT_MAP[ch];
       return el ? `<span class="element-${el.toLowerCase()}">${ch}</span>` : ch;
     }).join('');
+    const fourPillars = `${colorize(bz.year)}　${colorize(bz.month)}　${colorize(bz.day)}　${colorize(bz.hour)}`;
 
-    // Calculate 10 Gods for each pillar
+    // 十神优先用 lunar-javascript；本地 getTenGods 作兜底
     const dayStem = bz.day[0];
-    const tenGods = {
+    const tenGods = bz.tenGods || {
       year: getTenGods(dayStem, bz.year[0]),
       month: getTenGods(dayStem, bz.month[0]),
-      day: '日主 (Day Master)',
+      day: '日主',
       hour: getTenGods(dayStem, bz.hour[0])
     };
 
@@ -865,19 +884,26 @@ window.addEventListener('DOMContentLoaded', () => {
       `<tr><td>Hour</td><td>${colorize(bz.hour)}</td><td>${formatE([ELEMENT_MAP[bz.hour[0]], ELEMENT_MAP[bz.hour[1]]])}</td><td>${tenGods.hour}</td></tr>` +
       `</table>`;
 
-    // Get recommended products
     const recommendedProducts = getRecommendedProducts(analysis.favorable, analysis.luckyColors);
+    const starLine = bz.star
+      ? `<p><strong>二十八宿:</strong> ${bz.ganZhi || bz.day} · ${bz.star}</p>`
+      : '';
+    const naYinLine = bz.naYin
+      ? `<p><strong>纳音:</strong> ${bz.naYin.year} / ${bz.naYin.month} / ${bz.naYin.day} / ${bz.naYin.hour}</p>`
+      : '';
 
     res.innerHTML = `
       <div class="analysis-summary">
         <h3>Your BaZi Analysis</h3>
-      <p><strong>GanZhi:</strong> ${ganZhi}</p>
-      <p><strong>Star:</strong> ${star}</p>
-        <p><strong>Lucky Elements:</strong> ${formatE(analysis.favorable)}</p>
-        <p><strong>Unlucky Elements:</strong> ${formatE(analysis.unfavorable)}</p>
+        <p><strong>Four Pillars (四柱):</strong> ${fourPillars}</p>
+        <p><strong>${dm}</strong></p>
+        <p><strong>Lucky Elements (喜用神):</strong> ${formatE(analysis.favorable)}</p>
+        <p><strong>Unlucky Elements (忌神):</strong> ${formatE(analysis.unfavorable)}</p>
         <p><strong>Lucky Colors:</strong> ${analysis.luckyColors.join(', ')}</p>
         <p><strong>Lucky Numbers:</strong> ${analysis.luckyNumbers.join(', ')}</p>
-      <p><strong>${dm}</strong></p>
+        ${starLine}
+        ${naYinLine}
+        <p style="color:#888;font-size:12px;">Pillars via <a href="https://github.com/6tail/lunar-javascript" target="_blank" rel="noopener">lunar-javascript</a></p>
       </div>
       ${table}
       <div class="recommended-products">
