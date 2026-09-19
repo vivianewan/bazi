@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Knowledge · Lucky Charm</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header>
+    <h1>Lucky Charm Bracelet Selector</h1>
+    <nav>
+      <button onclick="location.href='index.html'">BaZi Analysis</button>
+      <button onclick="location.href='index.html#products'">All Products</button>
+      <button class="active" onclick="location.href='knowledge.html'">Knowledge</button>
+      <button onclick="location.href='index.html#cart'">Cart</button>
+    </nav>
+  </header>
+
+  <main class="knowledge-page">
+    <section class="knowledge-hero">
+      <h2>玄学知识 Knowledge</h2>
+      <p>八字、五行、材质与佩戴小知识。由站长维护，访客只读。</p>
+    </section>
+    <section id="article-list" class="article-list">
+      <p class="muted">Loading articles…</p>
+    </section>
+    <p class="admin-hint muted">
+      站长编辑入口：<a href="admin/">Admin CMS</a>
+      （需 GitHub 登录，仅仓库协作者可改）
+    </p>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="knowledge.js"></script>
+</body>
+</html>

@@ -1,0 +1,26 @@
+backend:
+  name: github
+  repo: vivianewan/bazi
+  branch: main
+  base_url: https://api.decap-cms.org
+  auth_endpoint: auth
+
+media_folder: content/uploads
+public_folder: content/uploads
+
+collections:
+  - name: articles
+    label: Knowledge Articles
+    label_singular: Article
+    folder: content/articles
+    create: true
+    delete: true
+    slug: "{{slug}}"
+    extension: md
+    format: frontmatter
+    fields:
+      - { label: Title, name: title, widget: string }
+      - { label: Publish Date, name: date, widget: datetime, date_format: YYYY-MM-DD, time_format: false }
+      - { label: Summary, name: summary, widget: string, required: false }
+      - { label: Cover Image, name: cover, widget: image, required: false }
+      - { label: Body, name: body, widget: markdown }

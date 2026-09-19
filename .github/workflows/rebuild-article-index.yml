@@ -1,0 +1,63 @@
+name: Rebuild article index
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'content/articles/**'
+      - '.github/workflows/rebuild-article-index.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  rebuild:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Generate content/articles/index.json
+        run: |
+          python3 <<'PY'
+          import json, re
+          from pathlib import Path
+          from datetime import datetime, timezone
+
+          root = Path('content/articles')
+          articles = []
+          for path in sorted(root.glob('*.md')):
+              raw = path.read_text(encoding='utf-8')
+              meta = {}
+              if raw.startswith('---'):
+                  end = raw.find('\n---', 3)
+                  if end != -1:
+                      for line in raw[3:end].strip().splitlines():
+                          if ':' in line:
+                              k, v = line.split(':', 1)
+                              meta[k.strip()] = v.strip().strip('"').strip("'")
+              articles.append({
+                  'slug': path.stem,
+                  'title': meta.get('title', path.stem),
+                  'date': meta.get('date', ''),
+                  'summary': meta.get('summary', ''),
+                  'cover': meta.get('cover', ''),
+              })
+          articles.sort(key=lambda a: a.get('date') or '', reverse=True)
+          out = {
+              'generatedAt': datetime.now(timezone.utc).isoformat(),
+              'articles': articles,
+          }
+          (root / 'index.json').write_text(json.dumps(out, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+          print(f'Wrote {len(articles)} articles')
+          PY
+      - name: Commit index if changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add content/articles/index.json
+          if git diff --staged --quiet; then
+            echo "No index changes"
+          else
+            git commit -m "chore: rebuild knowledge article index"
+            git push
+          fi
