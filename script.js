@@ -472,36 +472,37 @@ function closeModal() {
   }
 }
 
-function addToCart(productId) {
+function addToCart(productId, { silent = false } = {}) {
   const product = products.find(p => p.id === productId);
-  const quantity = document.getElementById('quantity').value;
-  
-  // Simple cart implementation (you can integrate with Shopify here)
+  if (!product) return;
+  const quantityEl = document.getElementById('quantity');
+  const quantity = parseInt(quantityEl && quantityEl.value ? quantityEl.value : '1', 10) || 1;
+
   let cart = JSON.parse(localStorage.getItem('cart') || '[]');
   const existingItem = cart.find(item => item.id === productId);
-  
+
   if (existingItem) {
-    existingItem.quantity += parseInt(quantity);
+    existingItem.quantity += quantity;
   } else {
     cart.push({
       id: productId,
       name: product.name,
       price: product.price,
-      quantity: parseInt(quantity),
+      quantity,
       image: product.image
     });
   }
-  
+
   localStorage.setItem('cart', JSON.stringify(cart));
   updateCartCount();
-  alert(`${product.name} added to cart!`);
+  if (!silent) alert(`${product.name} added to cart!`);
   closeModal();
 }
 
 function buyNow(productId) {
-  // Redirect to checkout or integrate with Shopify
-  alert('Redirecting to checkout...');
-  // window.location.href = 'https://your-shopify-store.com/cart';
+  addToCart(productId, { silent: true });
+  showCart();
+  checkout();
 }
 
 // —— 导航功能 ——
@@ -576,8 +577,52 @@ function removeFromCart(productId) {
 }
 
 function checkout() {
-  alert('Redirecting to checkout...');
-  // Integrate with Shopify or payment processor
+  const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+  if (!cart.length) {
+    alert('Your cart is empty.');
+    return;
+  }
+
+  const apiBase = window.CHECKOUT_API_BASE || '';
+  const btn = document.querySelector('.cart-total button');
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = 'Redirecting to Stripe…';
+  }
+
+  fetch(`${apiBase}/api/create-checkout-session`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      items: cart.map((item) => ({
+        id: item.id,
+        name: item.name,
+        price: item.price,
+        quantity: item.quantity,
+        image: item.image
+      })),
+      successUrl: `${window.location.origin}${window.location.pathname.replace(/[^/]*$/, '')}success.html`,
+      cancelUrl: `${window.location.href.split('#')[0]}`
+    })
+  })
+    .then(async (res) => {
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || `Checkout failed (${res.status})`);
+      if (!data.url) throw new Error('No checkout URL returned');
+      window.location.href = data.url;
+    })
+    .catch((err) => {
+      console.error(err);
+      alert(
+        'Checkout is not configured yet.\n\n' +
+          'Add STRIPE_SECRET_KEY on Vercel, then set window.CHECKOUT_API_BASE to your Vercel URL if this site is on GitHub Pages.\n\n' +
+          err.message
+      );
+      if (btn) {
+        btn.disabled = false;
+        btn.textContent = 'Proceed to Checkout';
+      }
+    });
 }
 
 function updateCartCount() {
@@ -586,268 +631,20 @@ function updateCartCount() {
   document.getElementById('cart-count').textContent = totalItems;
 }
 
-// —— AI Chatbot Functions ——
-let isChatOpen = false;
-
-function toggleChat() {
-  const chatbot = document.getElementById('chatbot-container');
-  isChatOpen = !isChatOpen;
-  
-  if (isChatOpen) {
-    chatbot.style.display = 'block';
-    document.getElementById('chat-input').focus();
-    // Add welcome message if first time
-    if (document.getElementById('chatbot-messages').children.length === 0) {
-      addChatMessage('assistant', 'Hello! I\'m your BaZi AI Assistant. I can help you understand your BaZi analysis, explain stone meanings, and recommend the perfect bracelet for you. What would you like to know?');
-    }
-  } else {
-    chatbot.style.display = 'none';
-  }
-}
-
-function addChatMessage(sender, message) {
-  const messagesContainer = document.getElementById('chatbot-messages');
-  const messageDiv = document.createElement('div');
-  messageDiv.className = `chat-message ${sender}`;
-  
-  const timestamp = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-  messageDiv.innerHTML = `
-    <div class="message-content">
-      <div class="message-text">${message}</div>
-      <div class="message-time">${timestamp}</div>
-    </div>
-  `;
-  
-  messagesContainer.appendChild(messageDiv);
-  messagesContainer.scrollTop = messagesContainer.scrollHeight;
-}
-
-async function sendMessage() {
-  const input = document.getElementById('chat-input');
-  const message = input.value.trim();
-  
-  if (!message) return;
-  
-  // Add user message
-  addChatMessage('user', message);
-  input.value = '';
-  
-  // Show typing indicator
-  const typingDiv = document.createElement('div');
-  typingDiv.className = 'chat-message assistant typing';
-  typingDiv.innerHTML = `
-    <div class="message-content">
-      <div class="message-text">🤖 AI is thinking...</div>
-    </div>
-  `;
-  document.getElementById('chatbot-messages').appendChild(typingDiv);
-  
-  try {
-    // Get AI response
-    const response = await getAIResponse(message);
-    
-    // Remove typing indicator
-    document.getElementById('chatbot-messages').removeChild(typingDiv);
-    
-    // Add AI response
-    addChatMessage('assistant', response);
-  } catch (error) {
-    // Remove typing indicator
-    document.getElementById('chatbot-messages').removeChild(typingDiv);
-    
-    // Add error message
-    addChatMessage('assistant', 'Sorry, I\'m having trouble connecting right now. Please try again later.');
-    console.error('Chatbot error:', error);
-  }
-}
-
-async function getAIResponse(userMessage) {
-  // Check if AI is enabled (admin control)
-  const aiEnabled = document.getElementById('ai-enabled').checked;
-  
-  if (!aiEnabled) {
-    // Use smart fallback responses instead of generic message
-    return await generateLocalResponse(userMessage, '');
-  }
-
-  // Create context about the website and products
-  const context = `
-You are a BaZi AI Assistant for a Chinese astrology bracelet customizer website. 
-You help customers understand their BaZi analysis, explain stone meanings, and recommend bracelets.
-
-Website Context:
-- We offer personalized BaZi analysis with 10 Gods system
-- We have 20+ stones across 5 elements (Wood, Fire, Earth, Metal, Water)
-- Products include: Green Phantom Quartz, Xinjiang Hetian Jade, Alashan Agate, Obsidian, etc.
-- We provide lucky colors, numbers, and element analysis
-- Customers can get personalized stone recommendations
-
-Available Stones by Element:
-Wood: Green Phantom Quartz, Peach Wood, Hainan Agarwood, Green Sandalwood
-Fire: Alashan Agate, Red Agate, Rose Quartz
-Earth: Xinjiang Old Yellow Jade, Xinjiang Hetian Jade, Shoushan Imperial Stone
-Metal: White Cat's Eye Stone, Sheep Fat White Jade
-Water: South African Blue Lace Agate, Obsidian
-
-Be helpful, knowledgeable about Chinese astrology, and encourage customers to try the BaZi analysis.
-Keep responses concise but informative.
-  `;
-
-  // Always try API route first (for Vercel deployment)
-  // Fallback to local config only if API route fails
-  try {
-    return await generateOpenAIResponse(userMessage, context);
-  } catch (error) {
-    console.log('API route failed, using fallback:', error);
-    return await generateLocalResponse(userMessage, context);
-  }
-}
-
-async function generateOpenAIResponse(message, context) {
-  try {
-    console.log('Attempting API call to /api/chat');
-    
-    // Use Vercel API route for serverless function
-    const response = await fetch('/api/chat', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        message: message,
-        context: context
-      })
-    });
-
-    console.log('API response status:', response.status);
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('API error response:', errorText);
-      throw new Error(`API error: ${response.status} - ${errorText}`);
-    }
-
-    const data = await response.json();
-    console.log('API response data:', data);
-    return data.response;
-  } catch (error) {
-    console.error('API Error:', error);
-    throw error; // Re-throw to trigger fallback
-  }
-}
-
-async function generateLocalResponse(message, context) {
-  const lowerMessage = message.toLowerCase();
-  
-  // BaZi related responses
-  if (lowerMessage.includes('bazi') || lowerMessage.includes('八字')) {
-    return "BaZi (八字) is the Chinese system of four pillars representing your birth year, month, day, and hour. Each pillar contains a heavenly stem and earthly branch, revealing your elemental balance and personality traits. Try our BaZi analysis to discover your lucky elements, colors, and recommended stones!";
-  }
-  
-  if (lowerMessage.includes('element') || lowerMessage.includes('五行')) {
-    return "The Five Elements (五行) are Wood, Fire, Earth, Metal, and Water. Each element has specific characteristics, colors, and stones. Your BaZi analysis will show which elements are strong or weak in your chart, helping us recommend the perfect stones for your bracelet.";
-  }
-  
-  if (lowerMessage.includes('stone') || lowerMessage.includes('crystal') || lowerMessage.includes('jade')) {
-    return "We have beautiful stones for each element! For Wood: Green Phantom Quartz and Green Sandalwood. For Fire: Alashan Agate and Rose Quartz. For Earth: Xinjiang Hetian Jade and Shoushan Imperial Stone. For Metal: White Cat's Eye Stone. For Water: Obsidian and Blue Lace Agate. Each stone has unique properties and meanings!";
-  }
-  
-  if (lowerMessage.includes('lucky') || lowerMessage.includes('color') || lowerMessage.includes('number')) {
-    return "Your lucky colors and numbers are determined by your BaZi analysis! Based on your birth date and time, we calculate which elements are favorable for you, then recommend corresponding colors and numbers. Try our analysis to discover your personalized lucky elements!";
-  }
-  
-  if (lowerMessage.includes('bracelet') || lowerMessage.includes('recommend')) {
-    return "Our AI analyzes your BaZi to recommend the perfect stones for your bracelet! We match your favorable elements with corresponding stones and colors. After your analysis, you'll see personalized recommendations that bring you luck and positive energy.";
-  }
-  
-  if (lowerMessage.includes('help') || lowerMessage.includes('how')) {
-    return "I can help you with: 1) Understanding BaZi analysis and the 10 Gods system, 2) Explaining stone meanings and properties, 3) Recommending bracelets based on your elements, 4) Understanding lucky colors and numbers. Try our BaZi analysis first to get personalized insights!";
-  }
-  
-  // Default response
-  return "That's a great question! I'm here to help you understand BaZi analysis, stone meanings, and find the perfect bracelet for you. Try our BaZi analysis to get personalized recommendations, or ask me about specific stones or elements. What would you like to know more about?";
-}
-
-// —— Admin Panel Functions ——
-function showAdminPanel() {
-  // Check if user is authenticated as admin
-  const isAdmin = checkAdminAuth();
-  
-  if (!isAdmin) {
-    const password = prompt('🔐 Admin Access Required\n\nEnter admin password:');
-    if (password === 'magicbaziadmin88') { // Change this to your secure password
-      sessionStorage.setItem('adminAuth', 'true');
-      showAdminPanelContent();
-    } else if (password !== null) {
-      alert('❌ Invalid password. Access denied.');
-    }
-  } else {
-    showAdminPanelContent();
-  }
-}
-
-function showAdminPanelContent() {
-  const modal = document.getElementById('admin-modal');
-  modal.style.display = 'flex';
-  updateStatusDisplay();
-}
-
-function checkAdminAuth() {
-  return sessionStorage.getItem('adminAuth') === 'true';
-}
-
-function closeAdminPanel() {
-  const modal = document.getElementById('admin-modal');
-  modal.style.display = 'none';
-}
-
-function logoutAdmin() {
-  sessionStorage.removeItem('adminAuth');
-  closeAdminPanel();
-  alert('✅ Admin session ended. You will need to re-authenticate to access admin controls.');
-}
-
-function updateStatusDisplay() {
-  const aiEnabled = document.getElementById('ai-enabled').checked;
-  const statusDot = document.querySelector('.status-dot');
-  const statusText = document.getElementById('status-text');
-  
-  if (aiEnabled) {
-    statusDot.style.backgroundColor = '#4CAF50';
-    statusText.textContent = 'Real AI Active';
-  } else {
-    statusDot.style.backgroundColor = '#FF9800';
-    statusText.textContent = 'Fallback Mode';
-  }
-}
-
-// Add event listener for AI toggle
-document.addEventListener('DOMContentLoaded', () => {
-  const aiToggle = document.getElementById('ai-enabled');
-  if (aiToggle) {
-    aiToggle.addEventListener('change', updateStatusDisplay);
-  }
-});
-
-// Handle Enter key in chat input
-document.addEventListener('DOMContentLoaded', () => {
-  const chatInput = document.getElementById('chat-input');
-  if (chatInput) {
-    chatInput.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') {
-        sendMessage();
-      }
-    });
-  }
-});
-
 // —— 渲染与交互逻辑 ——
 window.addEventListener('DOMContentLoaded', () => {
   // Initialize cart count
   updateCartCount();
-  
-  // Set default active navigation
-  updateActiveNav('nav-analysis');
+
+  // Deep links from knowledge/nav
+  if (location.hash === '#products') {
+    showProductsPage();
+  } else if (location.hash === '#cart') {
+    showCart();
+  } else {
+    updateActiveNav('nav-analysis');
+    document.getElementById('material-list').style.display = 'none';
+  }
   
   const mCont = document.getElementById('materials-container');
   materials.forEach(mat => {

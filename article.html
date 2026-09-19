@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Article · Lucky Charm</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header>
+    <h1>Lucky Charm Bracelet Selector</h1>
+    <nav>
+      <button onclick="location.href='index.html'">BaZi Analysis</button>
+      <button onclick="location.href='index.html#products'">All Products</button>
+      <button onclick="location.href='knowledge.html'">Knowledge</button>
+      <button onclick="location.href='index.html#cart'">Cart</button>
+    </nav>
+  </header>
+
+  <main class="knowledge-page article-page">
+    <p><a href="knowledge.html">← 返回知识列表</a></p>
+    <article id="article-body">
+      <p class="muted">Loading…</p>
+    </article>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="knowledge.js"></script>
+</body>
+</html>
